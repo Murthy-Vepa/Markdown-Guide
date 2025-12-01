@@ -2198,13 +2198,12 @@ ___
 **Rendered:**
 
 ---
-
-
+<br>
 ***
-
+<br>
 ___
 
----
+
 
 ## Line Breaks
 
@@ -2218,6 +2217,14 @@ Or use HTML:<br>
 Second line
 \`\`\`
 
+**Rendered:**
+
+First line with two spaces  
+Second line
+
+Or use HTML:<br>
+Second line
+
 ---
 
 ## Escaping Characters
@@ -2229,6 +2236,12 @@ Use backslash to escape special characters:
 \\# Not a heading
 \\[Not a link\\]
 \`\`\`
+
+**Rendered:**
+
+\\* Not a bullet
+\\# Not a heading
+\\[Not a link\\]
 
 ---
 
@@ -4219,6 +4232,18 @@ These are just a few examples. Mermaid supports many more diagram types!`,
             const content = predefinedContent[id];
             if (content) {
                 renderMarkdown(content);
+                // Scroll to top of content area
+                const contentElement = document.querySelector('.content');
+                if (contentElement) {
+                    contentElement.scrollTop = 0;
+                }
+                // Also scroll window to top
+                window.scrollTo(0, 0);
+                // Scroll output element to top
+                const outputElement = document.getElementById('output');
+                if (outputElement) {
+                    outputElement.scrollTop = 0;
+                }
             }
         }
 
