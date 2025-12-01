@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Markdown Viewer with Mermaid</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/11.1.1/marked.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
-    <style>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <style type="text/css">
         * {
             margin: 0;
             padding: 0;
@@ -15,77 +16,172 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
         }
 
         .sidebar {
-            width: 280px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            border-radius: 0;
+            background: rgba(20, 20, 35, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 2px 30px rgba(0, 0, 0, 0.5),
+                        inset 0 -1px 0 rgba(255, 255, 255, 0.1);
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
+            align-items: center;
             transition: transform 0.3s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin: 0;
+            padding: 8px 12px;
+            gap: 10px;
+            z-index: 1000;
+            min-height: 50px;
+            max-height: 120px;
+            overflow: hidden;
         }
 
         .sidebar-header {
-            padding: 30px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 5px 10px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             color: white;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            white-space: nowrap;
+            flex-shrink: 1;
+            min-width: 0;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
+            .sidebar-header:hover {
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4),
+                            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            }
+
+            .sidebar-header:active {
+                transform: translateY(0);
+            }
+
             .sidebar-header h2 {
-                font-size: 1.3em;
-                margin-bottom: 5px;
+                font-size: 1.1em;
+                margin-bottom: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
 
             .sidebar-header p {
-                font-size: 0.85em;
+                font-size: 0.75em;
                 opacity: 0.9;
+                margin: 0;
             }
 
         .menu-section {
-            padding: 20px;
-            overflow-y: auto;
-            flex: 1;
+            padding: 0;
+            overflow-x: auto;
+            overflow-y: hidden;
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+
+        .menu-section::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .menu-section::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .menu-section::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+        }
+
+        .sidebar-footer {
+            padding: 5px 10px;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            flex-shrink: 0;
+            border-radius: 0;
+            margin-left: auto;
+        }
+
+        .contact-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: rgba(30, 30, 30, 0.8);
+            font-size: 0.8em;
+            white-space: nowrap;
+        }
+
+        .contact-info:hover {
+            color: rgba(30, 30, 30, 1);
+        }
+
+        .contact-icon {
+            font-size: 1.1em;
+        }
+
+        .contact-text {
+            font-weight: 500;
+            letter-spacing: 0.3px;
         }
 
             .menu-section h3 {
-                font-size: 0.75em;
-                text-transform: uppercase;
-                color: #666;
-                margin-bottom: 10px;
-                font-weight: 600;
-                letter-spacing: 1px;
+                display: none;
             }
 
         .menu-item {
-            padding: 12px 15px;
-            margin-bottom: 5px;
+            padding: 5px 10px;
+            margin-bottom: 0;
             border-radius: 8px;
             cursor: pointer;
-            transition: all 0.2s;
-            color: #333;
-            display: flex;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: rgba(255, 255, 255, 0.8);
+            display: inline-flex;
             align-items: center;
-            gap: 10px;
+            gap: 5px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            white-space: nowrap;
+            flex-shrink: 0;
+            font-size: 0.85em;
         }
 
             .menu-item:hover {
-                background: #f0f0f0;
-                transform: translateX(5px);
+                background: rgba(255, 255, 255, 0.1);
+                border-color: rgba(255, 255, 255, 0.15);
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
             }
 
             .menu-item.active {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, rgba(15, 52, 96, 0.8) 0%, rgba(22, 33, 62, 0.8) 100%);
                 color: white;
-                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+                box-shadow: 0 6px 20px rgba(15, 52, 96, 0.5),
+                            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+                border-color: rgba(255, 255, 255, 0.2);
             }
 
         .menu-icon {
-            font-size: 1.2em;
+            font-size: 1em;
         }
 
         .main-content {
@@ -93,26 +189,24 @@
             display: flex;
             flex-direction: column;
             min-width: 0;
+            margin: 0;
+            padding: 88px 0px 0px 0px;
         }
 
         .container {
             flex: 1;
-            margin: 20px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            margin: 0px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 0px;
+            box-shadow: 0 0px 0px rgba(0, 0, 0, 0.5);
             overflow: hidden;
             display: flex;
             flex-direction: column;
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 30px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            display: none;
         }
 
         .header-left h1 {
@@ -136,55 +230,122 @@
         }
 
         .controls {
-            padding: 20px;
-            background: #f8f9fa;
-            border-bottom: 2px solid #e9ecef;
+            position: fixed;
+            top: 50px;
+            left: 0;
+            right: 0;
+            width: 100%;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.85);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            color: #4a5568;
             display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
+            flex-direction: row;
+            flex-wrap: nowrap;
             align-items: center;
+            gap: 8px;
+            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
+            border-radius: 0px;
+            margin: 0px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            z-index: 999;
+            overflow-x: auto;
+            overflow-y: hidden;
         }
+
+            .controls b {
+                color: rgba(0, 0, 0, 0.45);
+                font-size: 0.7em;
+                font-weight: 500;
+                white-space: nowrap;
+                margin: 0;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+                flex-shrink: 0;
+            }
+            
+            .controls .btn {
+                justify-content: center;
+                padding: 5px 10px;
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                border: 1px solid rgba(16, 185, 129, 0.3);
+                border-radius: 6px;
+                color: white;
+                font-size: 0.75em;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                box-shadow: 0 1px 4px rgba(16, 185, 129, 0.2);
+                white-space: nowrap;
+            }
+
+            .controls .btn:hover {
+                background: linear-gradient(135deg, #059669 0%, #047857 100%);
+                box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+                transform: translateY(-0.5px);
+                color: white;
+            }
 
         .control-group {
             display: flex;
-            gap: 10px;
+            flex-direction: row;
             align-items: center;
-            flex: 1;
-            min-width: 250px;
+            gap: 6px;
+            flex: 1 1 auto;
+            min-width: 150px;
         }
 
         .url-input {
             flex: 1;
-            padding: 12px 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            font-size: 1em;
-            transition: border-color 0.2s;
+            padding: 5px 10px;
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            border-radius: 6px;
+            font-size: 0.75em;
+            transition: all 0.2s;
+            background: rgba(255, 255, 255, 0.9);
+            color: #4a5568;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
         }
+
+            .url-input::placeholder {
+                color: rgba(0, 0, 0, 0.4);
+            }
 
             .url-input:focus {
                 outline: none;
-                border-color: #667eea;
+                border-color: rgba(102, 126, 234, 0.5);
+                background: white;
+                box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.08), 0 1px 2px rgba(0, 0, 0, 0.03);
+                transform: none;
             }
 
         .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(105deg, rgba(15, 52, 96, 0.9) 0%, rgba(22, 33, 62, 0.9) 100%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             color: white;
-            padding: 12px 25px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1em;
+            padding: 6px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            font-size: 0.85em;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
 
             .btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(15, 52, 96, 0.4);
+                border-color: rgba(255, 255, 255, 0.3);
             }
 
-            .btn:disabled {
+            .btn:active, .btnFullWidth:active {
+                transform: translateY(0);
+            }
+
+            .btn:disabled, .btnFullWidth:disabled {
                 opacity: 0.5;
                 cursor: not-allowed;
                 transform: none;
@@ -192,27 +353,42 @@
 
         .file-input-wrapper {
             position: relative;
+            display: block;
+            max-width: 100%;
         }
 
             .file-input-wrapper input[type="file"] {
                 position: absolute;
-                opacity: 0;
+                top: 0;
+                left: 0;
                 width: 100%;
                 height: 100%;
+                opacity: 0;
                 cursor: pointer;
-                margin-left: -150px;
             }
 
         .content {
-            padding: 40px;
+            padding: 0px 25px;
             overflow-y: auto;
             flex: 1;
+            background: white;
+            scroll-padding-top: 100px;
         }
 
         .markdown-content {
             line-height: 1.8;
             color: #333;
         }
+        
+            /* Add scroll offset for anchor links to account for fixed headers */
+            .markdown-content h1,
+            .markdown-content h2,
+            .markdown-content h3,
+            .markdown-content h4,
+            .markdown-content h5,
+            .markdown-content h6 {
+                scroll-margin-top: 100px;
+            }
 
             .markdown-content h1,
             .markdown-content h2,
@@ -257,18 +433,233 @@
             }
 
             .markdown-content pre {
-                background: #f6f8fa;
-                padding: 16px;
-                border-radius: 8px;
+                background: linear-gradient(135deg, #f8f9fa 0%, #f0f2f5 100%);
+                padding: 20px;
+                border-radius: 12px;
                 overflow-x: auto;
                 margin-bottom: 16px;
+                border: 1px solid rgba(0, 0, 0, 0.08);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05),
+                            inset 0 1px 0 rgba(255, 255, 255, 0.9);
+                position: relative;
             }
 
                 .markdown-content pre code {
                     background: none;
                     padding: 0;
                     color: #333;
+                    font-size: 0.95em;
+                    line-height: 1.6;
                 }
+
+            /* JSON Syntax Highlighting */
+            .markdown-content pre code.language-json {
+                display: block;
+                white-space: pre;
+            }
+
+                .markdown-content pre code.language-json .json-key {
+                    color: #0451a5;
+                    font-weight: 500;
+                }
+
+                .markdown-content pre code.language-json .json-string {
+                    color: #a31515;
+                }
+
+                .markdown-content pre code.language-json .json-number {
+                    color: #098658;
+                }
+
+                .markdown-content pre code.language-json .json-boolean {
+                    color: #0000ff;
+                    font-weight: 600;
+                }
+
+                .markdown-content pre code.language-json .json-null {
+                    color: #0000ff;
+                    font-weight: 600;
+                }
+
+                .markdown-content pre code.language-json .json-punctuation {
+                    color: #333;
+                }
+
+            /* Other language highlighting hints */
+            .markdown-content pre[data-language]::before {
+                content: attr(data-language);
+                position: absolute;
+                top: 8px;
+                right: 12px;
+                font-size: 0.75em;
+                color: #6a737d;
+                text-transform: uppercase;
+                font-weight: 600;
+                letter-spacing: 0.5px;
+            }
+
+            .markdown-content pre code.language-javascript .js-keyword,
+            .markdown-content pre code.language-js .js-keyword {
+                color: #d73a49;
+                font-weight: 600;
+            }
+
+            .markdown-content pre code.language-javascript .js-string,
+            .markdown-content pre code.language-js .js-string {
+                color: #032f62;
+            }
+
+            .markdown-content pre code.language-python .py-keyword {
+                color: #d73a49;
+                font-weight: 600;
+            }
+
+            .markdown-content pre code.language-python .py-string {
+                color: #032f62;
+            }
+
+            /* SQL Syntax Highlighting */
+            .markdown-content pre code.language-sql .sql-keyword {
+                color: #0000ff;
+                font-weight: 600;
+                text-transform: uppercase;
+            }
+
+            .markdown-content pre code.language-sql .sql-string {
+                color: #a31515;
+            }
+
+            .markdown-content pre code.language-sql .sql-number {
+                color: #098658;
+            }
+
+            .markdown-content pre code.language-sql .sql-comment {
+                color: #008000;
+                font-style: italic;
+            }
+
+            .markdown-content pre code.language-sql .sql-function {
+                color: #795e26;
+                font-weight: 500;
+            }
+
+            /* C# Syntax Highlighting */
+            .markdown-content pre code.language-csharp .cs-keyword,
+            .markdown-content pre code.language-cs .cs-keyword {
+                color: #0000ff;
+                font-weight: 600;
+            }
+
+            .markdown-content pre code.language-csharp .cs-string,
+            .markdown-content pre code.language-cs .cs-string {
+                color: #a31515;
+            }
+
+            .markdown-content pre code.language-csharp .cs-number,
+            .markdown-content pre code.language-cs .cs-number {
+                color: #098658;
+            }
+
+            .markdown-content pre code.language-csharp .cs-comment,
+            .markdown-content pre code.language-cs .cs-comment {
+                color: #008000;
+                font-style: italic;
+            }
+
+            .markdown-content pre code.language-csharp .cs-type,
+            .markdown-content pre code.language-cs .cs-type {
+                color: #2b91af;
+                font-weight: 500;
+            }
+
+            .markdown-content pre code.language-csharp .cs-attribute,
+            .markdown-content pre code.language-cs .cs-attribute {
+                color: #808080;
+            }
+
+            /* HTML Syntax Highlighting */
+            .markdown-content pre code.language-html .html-tag {
+                color: #800000;
+                font-weight: 600;
+            }
+
+            .markdown-content pre code.language-html .html-attr-name {
+                color: #ff0000;
+            }
+
+            .markdown-content pre code.language-html .html-attr-value {
+                color: #0000ff;
+            }
+
+            .markdown-content pre code.language-html .html-comment {
+                color: #008000;
+                font-style: italic;
+            }
+
+            .markdown-content pre code.language-html .html-doctype {
+                color: #808080;
+                font-weight: 600;
+            }
+
+            .markdown-content pre code.language-html .html-entity {
+                color: #2b91af;
+            }
+
+            /* JavaScript Syntax Highlighting */
+            .markdown-content pre code.language-javascript .js-keyword,
+            .markdown-content pre code.language-js .js-keyword {
+                color: #0000ff;
+                font-weight: 600;
+            }
+
+            .markdown-content pre code.language-javascript .js-string,
+            .markdown-content pre code.language-js .js-string {
+                color: #a31515;
+            }
+
+            .markdown-content pre code.language-javascript .js-number,
+            .markdown-content pre code.language-js .js-number {
+                color: #098658;
+            }
+
+            .markdown-content pre code.language-javascript .js-comment,
+            .markdown-content pre code.language-js .js-comment {
+                color: #008000;
+                font-style: italic;
+            }
+
+            .markdown-content pre code.language-javascript .js-function,
+            .markdown-content pre code.language-js .js-function {
+                color: #795e26;
+                font-weight: 500;
+            }
+
+            .markdown-content pre code.language-javascript .js-variable,
+            .markdown-content pre code.language-js .js-variable {
+                color: #001080;
+            }
+
+            .markdown-content pre code.language-javascript .js-operator,
+            .markdown-content pre code.language-js .js-operator {
+                color: #000000;
+            }
+
+            .markdown-content pre code.language-javascript .js-boolean,
+            .markdown-content pre code.language-js .js-boolean {
+                color: #0000ff;
+                font-weight: 600;
+            }
+
+            .markdown-content pre code.language-javascript .js-null,
+            .markdown-content pre code.language-js .js-null {
+                color: #0000ff;
+                font-weight: 600;
+            }
+
+            .markdown-content pre code.language-javascript .js-regex,
+            .markdown-content pre code.language-js .js-regex {
+                color: #811f3f;
+            }
 
             .markdown-content blockquote {
                 border-left: 4px solid #667eea;
@@ -276,7 +667,19 @@
                 margin: 16px 0;
                 color: #666;
                 font-style: italic;
+                position: relative;
+                background: rgba(102, 126, 234, 0.05);
+                padding: 16px 16px 16px 48px;
+                border-radius: 8px;
             }
+            
+                .markdown-content blockquote .quote-icon {
+                    position: absolute;
+                    left: 12px;
+                    top: 12px;
+                    font-size: 1.5em;
+                    opacity: 0.5;
+                }
 
             .markdown-content ul,
             .markdown-content ol {
@@ -286,6 +689,28 @@
 
             .markdown-content li {
                 margin-bottom: 8px;
+            }
+
+            /* Task list (checkbox) styling */
+            .markdown-content .task-list-item {
+                list-style-type: none;
+                margin-left: -24px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .markdown-content .task-list-item input[type="checkbox"] {
+                margin: 0;
+                cursor: not-allowed;
+                width: 16px;
+                height: 16px;
+                flex-shrink: 0;
+            }
+            
+            .markdown-content .task-list-item input[type="checkbox"]:checked + span {
+                text-decoration: line-through;
+                opacity: 0.6;
             }
 
             .markdown-content a {
@@ -298,68 +723,163 @@
                 .markdown-content a:hover {
                     border-bottom-color: #667eea;
                 }
+                
+                .markdown-content a[target="_blank"]::after {
+                    content: " ↗";
+                    font-size: 0.85em;
+                    opacity: 0.6;
+                }
 
             .markdown-content img {
-                max-width: 100%;
+                max-width: 400px;
                 height: auto;
                 border-radius: 8px;
                 margin: 16px 0;
             }
 
+            .markdown-content .table-wrapper {
+                overflow-x: auto;
+                margin-bottom: 16px;
+                border-radius: 8px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            }
+            
             .markdown-content table {
                 border-collapse: collapse;
                 width: 100%;
-                margin-bottom: 16px;
+                margin-bottom: 0;
             }
 
-                .markdown-content table th,
-                .markdown-content table td {
-                    border: 1px solid #ddd;
-                    padding: 12px;
-                    text-align: left;
-                }
+            .markdown-content table th,
+            .markdown-content table td {
+                border: 1px solid #ddd;
+                padding: 12px;
+                text-align: left;
+                white-space: nowrap;
+            }
 
-                .markdown-content table th {
-                    background: #f6f8fa;
-                    font-weight: 600;
-                }
+            /* Table alignment support */
+            .markdown-content table th[align="left"],
+            .markdown-content table td[align="left"] {
+                text-align: left;
+            }
 
-                .markdown-content table tr:nth-child(even) {
+            .markdown-content table th[align="center"],
+            .markdown-content table td[align="center"] {
+                text-align: center;
+            }
+
+            .markdown-content table th[align="right"],
+            .markdown-content table td[align="right"] {
+                text-align: right;
+            }
+
+            .markdown-content table th {
+                background: #f6f8fa;
+                font-weight: 600;
+                position: sticky;
+                top: 0;
+            }                .markdown-content table tr:nth-child(even) {
                     background: #f9f9f9;
                 }
 
-        .mermaid {
-            background: #fff;
-            padding: 30px;
+        .mermaid-container {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
             border-radius: 8px;
-            margin: 30px 0;
+            border: 1px solid #e9ecef;
+        }
+
+        .mermaid-diagram {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .mermaid-code {
+            flex: 1;
+            min-width: 0;
+        }
+
+            .mermaid-code pre {
+                margin: 0;
+                background: #282c34;
+                color: #abb2bf;
+                padding: 16px;
+                border-radius: 4px;
+                overflow-x: auto;
+                font-family: 'Courier New', monospace;
+                font-size: 13px;
+                line-height: 1.5;
+                max-height: 600px;
+                overflow-y: auto;
+            }
+
+            .mermaid-code pre code {
+                background: none;
+                padding: 0;
+                color: #abb2bf;
+            }
+
+        .mermaid {
+            padding: 0px;
+            border-radius: 8px;
+            margin: 0px auto;
             text-align: center;
-            border: 2px solid #e9ecef;
-            overflow: visible !important;
+            border: 0px solid #e9ecef;
+            overflow-x: auto;
+            overflow-y: auto;
+            opacity: 1 !important;
+            visibility: visible !important;
+            max-width: 100%;
         }
 
             .mermaid svg {
                 max-width: 100% !important;
+                width: auto !important;
                 height: auto !important;
-                display: inline-block !important;
-                min-height: 400px;
+                display: block !important;
+                margin: 0 auto !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+                max-height: 600px;
             }
 
-            .mermaid > svg {
-                min-height: 400px;
-                width: 100% !important;
+            .mermaid * {
+                opacity: 1 !important;
+                visibility: visible !important;
+            }
+
+            .mermaid text {
+                font-size: 11px !important;
+                font-family: 'Segoe UI', sans-serif !important;
+            }
+
+            .mermaid [class*="label"] {
+                font-size: 11px !important;
+            }
+
+            .mermaid .nodeLabel,
+            .mermaid .edgeLabel {
+                font-size: 11px !important;
+            }
+
+            .mermaid[data-processed="true"] {
+                min-height: 0;
             }
 
 
         .empty-state {
             text-align: left;
-            padding: 60px 20px;
+            padding: 0px;
             color: #666;
         }
 
             .empty-state svg {
-                width: 120px;
-                height: 120px;
+                min-width: 120px;
+                min-height: 120px;
                 margin-bottom: 20px;
                 opacity: 0.3;
             }
@@ -404,15 +924,18 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(5px);
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             animation: fadeIn 0.3s;
+            overflow-y: auto;
         }
 
             .modal.open {
                 display: flex;
                 justify-content: center;
-                align-items: center;
+                align-items: flex-start;
+                padding-top: 10px;
             }
 
         @keyframes fadeIn {
@@ -426,14 +949,17 @@
         }
 
         .modal-content {
-            background: white;
-            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
             width: 90%;
             max-width: 800px;
             max-height: 90vh;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5),
+                        0 0 0 1px rgba(255, 255, 255, 0.2);
             animation: slideUp 0.3s;
         }
 
@@ -450,55 +976,64 @@
         }
 
         .modal-header {
-            padding: 25px 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 5px 15px;
+            background: linear-gradient(135deg, rgba(20, 20, 35, 0.95) 0%, rgba(15, 52, 96, 0.95) 100%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             color: white;
-            border-radius: 16px 16px 0 0;
+            border-radius: 8px 8px 0 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
 
             .modal-header h2 {
                 margin: 0;
-                font-size: 1.5em;
+                font-size: 1em;
             }
 
         .close-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             color: white;
-            font-size: 2em;
-            width: 40px;
-            height: 40px;
+            font-size: 1.2em;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.2s;
+            transition: all 0.3s;
             line-height: 1;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
 
             .close-btn:hover {
-                background: rgba(255, 255, 255, 0.3);
+                background: rgba(255, 255, 255, 0.25);
+                transform: rotate(90deg);
+                box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3),
+                            inset 0 1px 0 rgba(255, 255, 255, 0.2);
             }
 
         .modal-body {
-            padding: 30px;
+            padding: 10px;
             flex: 1;
             overflow-y: auto;
         }
 
         .markdown-textarea {
             width: 100%;
-            min-height: 400px;
+            min-height: 350px;
             padding: 20px;
             border: 2px solid #e9ecef;
-            border-radius: 12px;
+            border-radius: 2px;
             font-family: 'Courier New', monospace;
-            font-size: 1em;
-            line-height: 1.6;
+            font-size: 0.8em;
+            line-height: 1.4;
             resize: vertical;
             transition: border-color 0.2s;
         }
@@ -510,20 +1045,24 @@
             }
 
         .modal-footer {
-            padding: 20px 30px;
-            background: #f8f9fa;
-            border-radius: 0 0 16px 16px;
+            padding: 10px 15px;
+            background: rgba(248, 249, 250, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 0 0 8px 8px;
             display: flex;
             justify-content: flex-end;
             gap: 15px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
         }
 
         .btn-secondary {
-            background: #6c757d;
+            background: linear-gradient(135deg, rgba(108, 117, 125, 0.9) 0%, rgba(90, 98, 104, 0.9) 100%);
+            border-color: rgba(255, 255, 255, 0.15);
         }
 
             .btn-secondary:hover {
-                background: #5a6268;
+                background: linear-gradient(135deg, rgba(90, 98, 104, 0.9) 0%, rgba(73, 80, 87, 0.9) 100%);
             }
 
         .error {
@@ -535,39 +1074,141 @@
             margin: 20px 0;
         }
 
-        @media (max-width: 768px) {
+        .error-modal-header {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%) !important;
+        }
+
+        #errorMessage {
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            color: #c33;
+            line-height: 1.6;
+        }
+
+        /* Tablet and smaller laptops */
+        @media (max-width: 1024px) {
             .sidebar {
-                position: fixed;
-                left: 0;
-                top: 0;
-                height: 100vh;
-                z-index: 1000;
-                transform: translateX(-100%);
+                padding: 6px 8px;
+                gap: 6px;
             }
 
-                .sidebar.open {
-                    transform: translateX(0);
-                }
+            .sidebar-header {
+                padding: 4px 8px;
+            }
+
+            .sidebar-header h2 {
+                font-size: 1em;
+            }
+
+            .menu-item {
+                padding: 5px 8px;
+                font-size: 0.8em;
+            }
+
+            .sidebar-footer {
+                padding: 4px 8px;
+            }
+
+            .contact-info {
+                font-size: 0.75em;
+            }
+
+            .controls {
+                top: 45px;
+                padding: 6px 10px;
+            }
+
+            .controls b {
+                font-size: 0.65em;
+            }
+
+            .controls .btn {
+                padding: 4px 8px;
+                font-size: 0.7em;
+            }
+
+            .main-content {
+                padding: 95px 0px 0px 0px;
+            }
+        }
+
+        /* Mobile devices */
+        @media (max-width: 768px) {
+            .sidebar {
+                flex-wrap: nowrap;
+                padding: 5px 6px;
+                gap: 4px;
+            }
+
+            .sidebar-header {
+                padding: 3px 5px;
+            }
+
+            .sidebar-header h2 {
+                font-size: 0.85em;
+            }
+
+            .sidebar-header p {
+                display: none;
+            }
+
+            .menu-section {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: thin;
+            }
+
+            .menu-item {
+                padding: 4px 8px;
+                font-size: 0.7em;
+            }
+
+            .sidebar-footer {
+                padding: 3px 5px;
+            }
+
+            .contact-info {
+                font-size: 0.6em;
+                gap: 3px;
+            }
 
             .mobile-menu-btn {
-                display: block;
+                display: none;
             }
 
             .main-content {
                 width: 100%;
+                padding: 95px 0px 0px 0px;
             }
 
             .controls {
-                flex-direction: column;
-                align-items: stretch;
+                top: 45px;
+                padding: 5px 8px;
+                flex-wrap: nowrap;
+                gap: 6px;
+            }
+
+            .controls b {
+                font-size: 0.6em;
             }
 
             .control-group {
-                width: 100%;
+                min-width: 120px;
+            }
+
+            .url-input {
+                font-size: 0.65em;
+                padding: 4px 6px;
+            }
+
+            .controls .btn {
+                padding: 4px 8px;
+                font-size: 0.65em;
+                white-space: nowrap;
             }
 
             .content {
-                padding: 20px;
+                padding: 15px;
             }
 
             .header {
@@ -575,54 +1216,130 @@
                 gap: 15px;
                 text-align: center;
             }
+
+            .modal-content {
+                width: 95%;
+                max-height: 85vh;
+                margin: 10px;
+            }
+        }
+
+        /* Small mobile devices */
+        @media (max-width: 480px) {
+            .sidebar {
+                padding: 4px 5px;
+            }
+
+            .sidebar-header h2 {
+                font-size: 0.8em;
+            }
+
+            .menu-item {
+                padding: 3px 6px;
+                font-size: 0.65em;
+            }
+
+            .menu-icon {
+                font-size: 0.85em;
+            }
+
+            .contact-info {
+                font-size: 0.55em;
+            }
+
+            .contact-icon {
+                font-size: 0.9em;
+            }
+
+            .main-content {
+                padding: 90px 0px 0px 0px;
+            }
+
+            .controls {
+                top: 40px;
+                padding: 4px 6px;
+                gap: 4px;
+            }
+
+            .controls b {
+                font-size: 0.55em;
+            }
+
+            .control-group {
+                gap: 3px;
+                min-width: 100px;
+            }
+
+            .url-input {
+                font-size: 0.6em;
+                padding: 3px 5px;
+            }
+
+            .controls .btn {
+                padding: 3px 6px;
+                font-size: 0.6em;
+            }
+
+            .content {
+                padding: 10px;
+                font-size: 0.95em;
+            }
+
+            .modal-content {
+                width: 98%;
+                border-radius: 12px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h2>📚 Documents</h2>
-            <p>Predefined & Custom</p>
+        <div class="sidebar-header" onclick="javascript:window.location.reload()">
+            <h2>📚 Markdown Viewer</h2>
         </div>
         <div class="menu-section">
-            <h3>Predefined Documents</h3>
+            <h3>Contents</h3>
             <div class="menu-item" data-type="predefined" data-id="welcome">
                 <span class="menu-icon">👋</span>
-                <span>Welcome Guide</span>
+                <span>Welcome</span>
+            </div>
+            <div class="menu-item" data-type="predefined" data-id="getting-started">
+                <span class="menu-icon">🚀</span>
+                <span>Getting Started</span>
+            </div>
+            <div class="menu-item" data-type="predefined" data-id="markdown-guide">
+                <span class="menu-icon">📝</span>
+                <span>Markdown Guide</span>
             </div>
             <div class="menu-item" data-type="predefined" data-id="mermaid-examples">
                 <span class="menu-icon">📊</span>
-                <span>Mermaid Examples</span>
-            </div>
-            <div class="menu-item" data-type="predefined" data-id="markdown-syntax">
-                <span class="menu-icon">📝</span>
-                <span>Markdown Syntax</span>
-            </div>
-        </div>
+                <span>Mermaid Guide</span>
+            </div>            
+        </div>              
     </div>
 
     <div class="main-content">
-        <div class="container">
-            <div class="header">
-                <div class="header-left">
-                    <h1>📝 Markdown Viewer</h1>
-                    <p>View markdown files with Mermaid diagram support</p>
-                </div>
-                <button class="mobile-menu-btn" onclick="toggleMenu()">☰</button>
-            </div>
-
-            <div class="controls">
-                <div class="control-group">
-                    <input type="text" id="urlInput" class="url-input" placeholder="Enter URL to markdown file...">
-                    <button class="btn" onclick="loadFromUrl()">Load URL</button>
-                </div>
+        <div class="controls">
+                <b style="font-size: large;color:yellow">👉</b>
+                <button class="btn" onclick="openMarkdownModal()">✏️ Custom</button>
+                <b>|</b>
                 <div class="file-input-wrapper">
-                    <button class="btn">Upload File</button>
+                    <button class="btn">📤 Upload Markdown File</button>
                     <input type="file" id="fileInput" accept=".md,.markdown,.txt, .html">
                 </div>
-                <button class="btn" onclick="openMarkdownModal()">✏️ Enter Markdown</button>
-            </div>
-
+                <b>|</b>
+                <div class="control-group">
+                    <input type="text" id="urlInput" class="url-input" placeholder="Enter Markdown URL...">
+                    <button class="btn" onclick="loadFromUrl()">🌐 Fetch</button>
+                </div>
+                <div class="sidebar-footer">
+                    <div class="contact-info">                
+                        <span class="contact-icon">📧</span>
+                        <span class="contact-text">Murthy Vepa</span>
+                    </div>
+                </div>              
+            </div> 
+        <div class="container">
             <!-- Markdown Input Modal -->
             <div id="markdownModal" class="modal">
                 <div class="modal-content">
@@ -648,15 +1365,24 @@
                 </div>
             </div>
 
+            <!-- Error Modal -->
+            <div id="errorModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header error-modal-header">
+                        <h2>❌ Error</h2>
+                        <button class="close-btn" onclick="closeErrorModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="errorMessage"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn" onclick="closeErrorModal()">Close</button>
+                    </div>
+                </div>
+            </div>
+
             <div class="content">
                 <div id="output" class="empty-state">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="16" y1="13" x2="8" y2="13"></line>
-                        <line x1="16" y1="17" x2="8" y2="17"></line>
-                        <polyline points="10 9 9 9 8 9"></polyline>
-                    </svg>
                     <h3>No document selected</h3>
                     <p>Choose a predefined document from the sidebar, upload a file, or load from URL</p>
                 </div>
@@ -668,39 +1394,88 @@
         // Initialize Mermaid
         mermaid.initialize({
             startOnLoad: false,            
-            theme: 'base',
+            theme: 'default',
             securityLevel: 'loose',
-            fontSize: '16px',
+            fontSize: 12,
+            fontFamily: '"Segoe UI", sans-serif',
+            htmlLabels: true,
+            themeVariables: {
+                primaryColor: '#667eea',
+                primaryTextColor: '#000',
+                primaryBorderColor: '#764ba2',
+                lineColor: '#333',
+                secondaryColor: '#764ba2',
+                tertiaryColor: '#f5f5f5',
+                fontSize: '14px'
+            },
             flowchart: {
                 useMaxWidth: true,
                 htmlLabels: true,
                 curve: 'basis',
+                padding: 15,
                 nodeSpacing: 50,
                 rankSpacing: 50,
-                width: '100%'
+                htmlLabels: true,
             },
             sequence: {
                 useMaxWidth: true,
-                width: 200,
-                height: 50,
                 diagramMarginX: 50,
-                diagramMarginY: 10
+                diagramMarginY: 10,
+                boxMargin: 10,
+                actorMargin: 50,
+                width: 150,
+                height: 65,
+                boxTextMargin: 5,
+                noteMargin: 10,
+                messageMargin: 35,
+                htmlLabels: true
             },
             gantt: {
-                useMaxWidth: true
+                useMaxWidth: true,
+                fontSize: 14,
+                barHeight: 20,
+                barGap: 4,
+                topPadding: 50,
+                leftPadding: 75,
+                htmlLabels: true
             },
             class: {
-                useMaxWidth: true
+                useMaxWidth: true,
+                htmlLabels: true,
             },
             state: {
-                useMaxWidth: true
+                useMaxWidth: true,
+                htmlLabels: true
             },
             er: {
-                useMaxWidth: true
+                useMaxWidth: true,
+                fontSize: 14,
+                htmlLabels: true
+            },
+            journey: {
+                useMaxWidth: true,
+                htmlLabels: true
+            },
+            pie: {
+                useMaxWidth: true,
+                htmlLabels: true
+            },
+            gitGraph: {
+                useMaxWidth: true,
+                htmlLabels: true
             }
         });
 
-        // Configure marked to handle mermaid blocks
+        // Configure marked with enhanced options
+        marked.setOptions({
+            gfm: true,              // Enable GitHub Flavored Markdown
+            breaks: true,           // Convert \n to <br>
+            pedantic: false,        // Don't be overly strict
+            smartLists: true,       // Use smarter list behavior
+            smartypants: false      // Don't use smart typography
+        });
+
+        // Configure marked with enhanced options\n        marked.setOptions({\n            gfm: true,              // Enable GitHub Flavored Markdown\n            breaks: true,           // Convert \\n to <br>\n            pedantic: false,        // Don't be overly strict\n            smartLists: true,       // Use smarter list behavior\n            smartypants: false      // Don't use smart typography\n        });\n\n        // Configure marked to handle mermaid blocks and enhance rendering
         marked.use({
             renderer: {
                 code(code, language) {
@@ -708,71 +1483,2280 @@
                         return `<div class="mermaid">${code}</div>`;
                     }
                     return `<pre><code class="language-${language}">${code}</code></pre>`;
+                },
+                heading(text, level) {
+                    // Create a slug from the heading text for the ID
+                    const escapedText = text.toLowerCase()
+                        .replace(/<[^>]+>/g, '') // Remove HTML tags
+                        .replace(/[^\w\s-]/g, '') // Remove special characters
+                        .replace(/\s+/g, '-') // Replace spaces with hyphens
+                        .replace(/--+/g, '-') // Replace multiple hyphens with single
+                        .trim();
+                    
+                    return `<h${level} id="${escapedText}">${text}</h${level}>`;
+                },
+                link(href, title, text) {
+                    // Check if link is external
+                    const isExternal = href.startsWith('http://') || href.startsWith('https://');
+                    const titleAttr = title ? ` title="${title}"` : '';
+                    const externalAttrs = isExternal ? ' target="_blank" rel="noopener noreferrer"' : '';
+                    return `<a href="${href}"${titleAttr}${externalAttrs}>${text}</a>`;
+                },
+                image(href, title, text) {
+                    const titleAttr = title ? ` title="${title}"` : '';
+                    const altAttr = text ? ` alt="${text}"` : ' alt=""';
+                    return `<img src="${href}"${altAttr}${titleAttr} loading="lazy" onerror="this.style.display='none'">`;
+                },
+                table(header, body) {
+                    return `<div class="table-wrapper"><table><thead>${header}</thead><tbody>${body}</tbody></table></div>`;
+                },
+                blockquote(quote) {
+                    return `<blockquote><span class="quote-icon">💬</span>${quote}</blockquote>`;
+                },
+                codespan(code) {
+                    return `<code>${code}</code>`;
+                },
+                list(body, ordered, start) {
+                    const type = ordered ? 'ol' : 'ul';
+                    const startAttr = (ordered && start !== 1) ? ` start="${start}"` : '';
+                    return `<${type}${startAttr}>${body}</${type}>`;
+                },
+                listitem(text, task, checked) {
+                    if (task) {
+                        const checkedAttr = checked ? ' checked' : '';
+                        // Remove any checkbox that might already be in the text
+                        const cleanText = text.replace(/<input[^>]*type=["']checkbox["'][^>]*>/gi, '').trim();
+                        return `<li class="task-list-item"><input type="checkbox"${checkedAttr} disabled> <span>${cleanText}</span></li>`;
+                    }
+                    return `<li>${text}</li>`;
                 }
             }
         });
 
         // Predefined markdown content
         const predefinedContent = {
-            'welcome': `# Welcome to Markdown Viewer! 👋
+            'welcome': `# 👋 Welcome to Markdown Viewer! 
 
-This is a powerful markdown viewer with support for:
+This is a powerful and feature-rich markdown viewer designed for modern web browsers with comprehensive support for:
+
+- **Standard and Extended Markdown Syntax** 
+- **Interactive Mermaid Diagrams** 
+- **Multiple Input Methods** 
+- **Real-time Rendering** 
+- **Error Handling** 
 
 ## Features
 
 - 📝 **Full Markdown Support** - All standard markdown syntax
 - 📊 **Mermaid Diagrams** - Flowcharts, sequence diagrams, and more
-- 🌐 **Remote Loading** - Load markdown from any public URL
+- ✏️ **Custom Input** - Create your own markdown content
 - 📂 **File Upload** - Upload local markdown files
+- 🌐 **Remote Loading** - Load markdown from any public URL
 - 🎨 **Beautiful UI** - Modern, responsive design
 
 ## Quick Start
 
-1. Click on any predefined document in the left sidebar
-2. Or upload your own markdown file using the "Upload File" button
-3. Or load a markdown file from a public URL
-
-## Example Code
-
-\`\`\`javascript
-function greet(name) {
-        console.log(\`Hello, \${name}!\`);
-}
-greet('World');
-\`\`\`
-
-## Example Mermaid Diagram
-
-\`\`\`mermaid
-graph LR
-        A[Start] --> B{Choose Option}
-        B -->|Sidebar| C[Predefined Docs]
-        B -->|Upload| D[Local Files]
-        B -->|URL| E[Remote Files]
-        C --> F[View Content]
-        D --> F
-        E --> F
-\`\`\`
-
-> **Tip**: Try the other predefined documents to see more examples!
+1. Choose from predefined documents in the left sidebar to learn about Markdown and Mermaid diagrams
+2. Or click the "Custom" button to enter your own markdown
+3. Or upload your own markdown file using the "Upload Markdown File" button
+4. Or load a Markdown file from a public URL
 
 ---
 
-**Enjoy your markdown viewing experience!** ✨`,
+**✨ Enjoy your markdown viewing experience! ✨** `,
 
-            'mermaid-examples': `# Mermaid Diagram Examples 📊
+            'getting-started': `# 🚀 Getting Started![](#getting-started)
 
-Mermaid lets you create diagrams using simple text syntax.
+Markdown is a lightweight markup language that you can use to add formatting elements to plaintext text documents. Created by [John Gruber](https://daringfireball.net/projects/markdown/) in 2004, Markdown is now one of the world’s most popular markup languages.
+
+You can add Markdown formatting elements to a plaintext file using a text editor application. Or you can use one of the many Markdown applications for macOS, Windows, Linux, iOS, and Android operating systems. There are also several web-based applications specifically designed for writing in Markdown.
+
+Depending on the application you use, you may not be able to preview the formatted document in real time. But that’s okay. [According to Gruber](https://daringfireball.net/projects/markdown/), 
+**Markdown syntax is designed to be readable and unobtrusive, so the text in Markdown files can be read even if it isn’t rendered.**
+
+> The overriding design goal for Markdown’s formatting syntax is to make it as readable as possible. The idea is that a Markdown-formatted document should be publishable as-is, as plain text, without looking like it’s been marked up with tags or formatting instructions.
+
+Why Use Markdown?[](#why-use-markdown)
+--------------------------------------
+
+You might be wondering why people use Markdown instead of a WYSIWYG editor. Why write with Markdown when you can press buttons in an interface to format your text? As it turns out, there are several reasons why people use Markdown instead of WYSIWYG editors.
+
+*   Markdown can be used for everything. People use it to create [websites](#websites), [documents](#documents), [notes](#notes), [books](#books), [presentations](#presentations), [email messages](#email), and [technical documentation](#documentation).
+    
+*   Markdown is portable. Files containing Markdown-formatted text can be opened using virtually any application. If you decide you don’t like the Markdown application you’re currently using, you can import your Markdown files into another Markdown application. That’s in stark contrast to word processing applications like Microsoft Word that lock your content into a proprietary file format.
+    
+*   Markdown is platform independent. You can create Markdown-formatted text on any device running any operating system.
+    
+*   Markdown is future proof. Even if the application you’re using stops working at some point in the future, you’ll still be able to read your Markdown-formatted text using a text editing application. This is an important consideration when it comes to books, university theses, and other milestone documents that need to be preserved indefinitely.
+    
+*   Markdown is everywhere. Websites like [Reddit](/tools/reddit/) and GitHub support Markdown, and lots of desktop and web-based applications support it.
+    
+
+Kicking the Tires[](#kicking-the-tires)
+---------------------------------------
+
+The best way to get started with Markdown is to use it. That’s easier than ever before thanks to a variety of free tools.
+
+You don’t even need to download anything. There are several online/offline Markdown editors that you can use to try writing in Markdown.
+
+How Does it Work?[](#how-does-it-work)
+--------------------------------------
+
+Markdown applications use something called a _Markdown processor_ (also commonly referred to as a “parser” or an “implementation”) to take the Markdown-formatted text and output it to HTML format. At that point, your document can be viewed in a web browser or combined with a style sheet and printed. You can see a visual representation of this process below.
+
+**Note:** The Markdown application and processor are two separate components. For the sake of brevity, I've combined them into one element ("Markdown app") in the figure below.
+
+ ![The Markdown Process](https://www.markdownguide.org/assets/images/generated/assets/images/markdown-flowchart-1080.png)
+
+To summarize, this is a four-part process:
+
+1.  Create a Markdown file using a text editor or a dedicated Markdown application. The file should have an \`.md\` or \`.markdown\` extension.
+2.  Open the Markdown file in a Markdown application.
+3.  Use the Markdown application to convert the Markdown file to an HTML document.
+4.  View the HTML file in a web browser or use the Markdown application to convert it to another file format, like PDF.
+
+From your perspective, the process will vary somewhat depending on the application you use. For example, Dillinger essentially combines steps 1-3 into a single, seamless interface — all you have to do is type in the left pane and the rendered output magically appears in the right pane. But if you use other tools, like a text editor with a static website generator, you’ll find that the process is much more visible.
+
+What’s Markdown Good For?[](#whats-markdown-good-for)
+-----------------------------------------------------
+
+Markdown is a fast and easy way to take notes, create content for a website, and produce print-ready documents.
+
+It doesn’t take long to learn the Markdown syntax, and once you know how to use it, you can write using Markdown just about everywhere. Most people use Markdown to create content for the web, but Markdown is good for formatting everything from email messages to grocery lists.
+
+Here are some examples of what you can do with Markdown.
+
+### Websites[](#websites)
+
+Markdown was designed for the web, so it should come as no surprise that there are plenty of applications specifically designed for creating website content.
+
+### Documents[](#documents)
+
+Markdown doesn’t have all the bells and whistles of word processors like Microsoft Word, but it’s good enough for creating basic documents like assignments and letters. You can use a Markdown document authoring application to create and export Markdown-formatted documents to PDF or HTML file format. The PDF part is key, because once you have a PDF document, you can do anything with it — print it, email it, or upload it to a website.
+
+### Notes[](#notes)
+
+In nearly every way, Markdown is the ideal syntax for taking notes. Sadly, [Evernote](https://evernote.com/) and [OneNote](https://www.onenote.com/), two of the most popular note applications, don’t currently support Markdown. The good news is that several other note applications _do_ support Markdown:
+
+*   [Obsidian](/tools/obsidian/) is a popular Markdown note-taking application loaded with features.
+*   [Simplenote](/tools/simplenote/) is a free, barebones note-taking application available for every platform.
+*   [Notable](/tools/notable/) is a note-taking application that runs on a variety of platforms.
+*   [Bear](/tools/bear/) is an Evernote-like application available for Mac and iOS devices. It doesn’t exclusively use Markdown by default, but you can enable Markdown compatibility mode.
+*   [Joplin](/tools/joplin/) is a note taking application that respects your privacy. It’s available for every platform.
+
+### Books[](#books)
+
+Looking to self-publish a novel? Try [Leanpub](https://leanpub.com/), a service that takes your Markdown-formatted files and turns them into an electronic book. Leanpub outputs your book in PDF, EPUB, and MOBI file format. If you’d like to create paperback copies of your book, you can upload the PDF file to another service such as [Kindle Direct Publishing](https://kdp.amazon.com).
+
+### Presentations[](#presentations)
+
+Believe it or not, you can generate presentations from Markdown-formatted files. Creating presentations in Markdown takes a little getting used to, but once you get the hang of it, it’s a lot faster and easier than using an application like PowerPoint or Keynote. [Remark](https://remarkjs.com) ([GitHub project](https://github.com/gnab/remark)) is a popular browser-based Markdown slideshow tool, as are [Cleaver](https://jdan.github.io/cleaver/) ([GitHub project](https://github.com/jdan/cleaver)) and [Marp](https://marp.app/) ([GitHub project](https://github.com/marp-team/marp)). If you use a Mac and would prefer to use an application, check out [Deckset](https://www.decksetapp.com/) or [Hyperdeck](https://hyperdeck.io/).
+
+### Email[](#email)
+
+If you send a lot of email and you’re tired of the formatting controls available on most email provider websites, you’ll be happy to learn there’s an easy way to write email messages using Markdown. [Markdown Here](/tools/markdown-here/) is a free and open-source browser extension that converts Markdown-formatted text into HTML that’s ready to send.
+
+### Collaboration[](#collaboration)
+
+Collaboration and team messaging applications are a popular way of communicating with coworkers and friends at work and home. These applications don’t utilize all of Markdown’s features, but the features they do provide are fairly useful. For example, the ability to bold and italicize text without using the WYSIWYG interface is pretty handy. [Slack](/tools/slack/), [Discord](/tools/discord/), [Wiki.js](/tools/wiki-js/), and [Mattermost](/tools/mattermost/) are all good collaboration applications.
+
+### Documentation[](#documentation)
+
+Markdown is a natural fit for technical documentation. Companies like GitHub are increasingly switching to Markdown for their documentation — check out their [blog post](https://github.com/blog/1939-how-github-uses-github-to-document-github) about how they migrated their Markdown-formatted documentation to [Jekyll](/tools/jekyll/). If you write documentation for a product or service, take a look at these handy tools:
+
+*   [Read the Docs](https://readthedocs.org) can generate a documentation website from your open source Markdown files. Just connect your GitHub repository to their service and push — Read the Docs does the rest. They also have a [service for commercial entities](https://readthedocs.com/).
+*   [MkDocs](/tools/mkdocs/) is a fast and simple static site generator that’s geared towards building project documentation. Documentation source files are written in Markdown and configured with a single YAML configuration file. MkDocs has several [built in themes](https://www.mkdocs.org/user-guide/styling-your-docs/), including a port of the [Read the Docs](https://readthedocs.org/) documentation theme for use with MkDocs. One of the newest themes is [MkDocs Material](https://squidfunk.github.io/mkdocs-material/).
+*   [Docusaurus](/tools/docusaurus/) is a static site generator designed exclusively for creating documentation websites. It supports translations, search, and versioning.
+*   [VuePress](https://vuepress.vuejs.org/) is a static site generator powered by [Vue](https://vuejs.org/) and optimized for writing technical documentation.
+*   [Jekyll](/tools/jekyll/) was mentioned earlier in the section on websites, but it’s also a good option for generating a documentation website from Markdown files. If you go this route, be sure to check out the [Jekyll documentation theme](https://idratherbewriting.com/documentation-theme-jekyll/).
+
+Additional Resources[](#additional-resources)
+---------------------------------------------
+
+There are lots of resources you can use to learn Markdown. Here are some other introductory resources:
+
+*   [John Gruber’s Markdown documentation](https://daringfireball.net/projects/markdown/). The original guide written by the creator of Markdown.
+*   [Markdown Tutorial](https://www.markdowntutorial.com/). An open source website that allows you to try Markdown in your web browser.
+*   [Awesome Markdown](https://github.com/mundimark/awesome-markdown). A list of Markdown tools and learning resources.
+*   [Typesetting Markdown](https://dave.autonoma.ca/blog/2019/05/22/typesetting-markdown-part-1). A multi-part series that describes an ecosystem for typesetting Markdown documents using [pandoc](https://pandoc.org/) and [ConTeXt](https://www.contextgarden.net/).
+`,
+
+            'markdown-guide': `# 📝 Complete Markdown Guide
+
+## Table of Contents
+1. [Headings](#headings)
+2. [Emphasis](#emphasis)
+3. [Lists](#lists)
+4. [Links](#links)
+5. [Images](#images)
+6. [Code](#code)
+7. [Blockquotes](#blockquotes)
+8. [Tables](#tables)
+9. [Task Lists](#task-lists)
+10. [Extended Syntax](#extended-syntax)
+
+---
+
+## Headings
+
+To create a heading, add number signs (\`#\`) in front of a word or phrase. The number corresponds to the heading level.
+
+### Examples:
+
+\`\`\`markdown
+# H1 Heading
+## H2 Heading
+### H3 Heading
+#### H4 Heading
+##### H5 Heading
+###### H6 Heading
+\`\`\`
+
+**Rendered:**
+
+# H1 Heading
+## H2 Heading
+### H3 Heading
+#### H4 Heading
+##### H5 Heading
+###### H6 Heading
+
+### Alternate Syntax
+
+For H1 and H2, you can use underlines:
+
+\`\`\`markdown
+Heading Level 1
+===============
+
+Heading Level 2
+---------------
+\`\`\`
+
+### ✅ Best Practices
+
+- Always put a space between \`#\` and the heading text
+- Put blank lines before and after headings
+- Don't use \`#Here's a Heading\` (missing space)
+
+---
+
+## Emphasis
+
+Add emphasis by making text bold, italic, or both.
+
+### Italic
+
+\`\`\`markdown
+*Italic text* or _italic text_
+A*cat*meow
+\`\`\`
+
+**Rendered:** *Italic text* or _italic text_
+
+### Bold
+
+\`\`\`markdown
+**Bold text** or __bold text__
+Love**is**bold
+\`\`\`
+
+**Rendered:** **Bold text** or __bold text__
+
+### Bold and Italic
+
+\`\`\`markdown
+***Bold and italic*** or ___bold and italic___
+This is really***very***important text
+\`\`\`
+
+**Rendered:** ***Bold and italic***
+
+### Strikethrough
+
+\`\`\`markdown
+~~Strikethrough text~~
+~~The world is flat.~~ We now know that the world is round.
+\`\`\`
+
+**Rendered:** ~~Strikethrough~~
+
+### ✅ Best Practices
+
+- Use asterisks (\`*\`) instead of underscores for emphasis within words
+- Example: \`Love**is**bold\` ✅ instead of \`Love__is__bold\` ❌
+
+---
+
+## Lists
+
+### Unordered Lists
+
+Use dashes (\`-\`), asterisks (\`*\`), or plus signs (\`+\`):
+
+\`\`\`markdown
+- First item
+- Second item
+  - Nested item 2.1
+  - Nested item 2.2
+- Third item
+\`\`\`
+
+**Rendered:**
+
+- First item
+- Second item
+  - Nested item 2.1
+  - Nested item 2.2
+- Third item
+
+### Ordered Lists
+
+\`\`\`markdown
+1. First item
+2. Second item
+3. Third item
+   1. Nested item
+   2. Another nested item
+4. Fourth item
+\`\`\`
+
+**Rendered:**
+
+1. First item
+2. Second item
+3. Third item
+   1. Nested item
+   2. Another nested item
+4. Fourth item
+
+### ✅ Best Practices
+
+- Use periods (\`.\`) only for ordered lists, not parentheses
+- Keep list items aligned properly for readability
+
+---
+
+## Links
+
+### Basic Link
+
+\`\`\`markdown
+[Link text](https://example.com)
+[Link with title](https://example.com "Hover title")
+\`\`\`
+
+**Rendered:** [Link text](https://example.com)
+
+### URLs and Email Addresses
+
+\`\`\`markdown
+&lt;https://www.example.com&gt;
+&lt;email@example.com&gt;
+\`\`\`
+
+**Rendered:** 
+
+<https://www.example.com>
+
+<email@example.com>
+
+### Reference Links
+
+\`\`\`markdown
+[Link text][reference]
+
+[reference]: https://example.com "Optional title"
+\`\`\`
+
+**Rendered:** 
+
+[Link text](https://example.com)
+
+[reference]: https://example.com "Optional title"
+
+### Heading Links
+
+\`\`\`markdown
+[Jump to Headings](#headings)
+\`\`\`
+
+**Rendered:** 
+
+[Jump to Headings](#headings)
+
+---
+
+## Images
+
+### Basic Image
+
+\`\`\`markdown
+![Tux, the Linux mascot](https://www.markdownguide.org/assets/images/tux.png)
+\`\`\`
+
+**Rendered:**
+
+![Tux, the Linux mascot](https://www.markdownguide.org/assets/images/tux.png)
+
+### Linked Image
+
+\`\`\`markdown
+![Tux, the Linux mascot](https://www.markdownguide.org/assets/images/tux.png)(https://linux.com)
+\`\`\`
+
+![Tux, the Linux mascot](https://www.markdownguide.org/assets/images/tux.png)(https://www.linux.com)
+
+---
+
+## Code
+
+### Inline Code
+
+Use single backticks:
+
+\`\`\`markdown
+Inline \`code\` with backticks
+Use \`console.log()\` to print
+\`\`\`
+
+**Rendered:** Inline \`code\` with backticks
+
+### Code Blocks
+
+Use triple backticks with optional language specification:
+
+\`\`\`markdown
+\`\`\`javascript
+function greet(name) {
+  console.log(\`Hello, \${name}!\`);
+}
+\`\`\`
+
+**Rendered:**
+
+\`\`\`javascript
+
+function greet(name) {
+  console.log(\`Hello, \${name}!\`);
+}
+
+\`\`\`
+
+### JSON Example
+
+\`\`\`json
+{
+  "name": "John Doe",
+  "age": 30,
+  "email": "john@example.com",
+  "active": true,
+  "hobbies": ["reading", "coding"]
+}
+\`\`\`
+
+### SQL Example
+
+\`\`\`sql
+SELECT id, name, email
+FROM users
+WHERE active = true
+ORDER BY created_at DESC;
+\`\`\`
+
+---
+
+## Blockquotes
+
+### Basic Blockquote
+
+\`\`\`markdown
+> This is a blockquote
+> It can span multiple lines
+\`\`\`
+
+**Rendered:**
+
+> This is a blockquote
+> It can span multiple lines
+
+### Multiple Paragraphs
+
+\`\`\`markdown
+> First paragraph in blockquote.
+>
+> Second paragraph in blockquote.
+\`\`\`
+
+**Rendered:**
+
+> First paragraph in blockquote.
+>
+> Second paragraph in blockquote.
+
+### Nested Blockquotes
+
+\`\`\`markdown
+> Outer blockquote
+>> Nested blockquote
+>>> Even deeper
+\`\`\`
+
+**Rendered:**
+
+> Outer blockquote
+>> Nested blockquote
+
+### Blockquotes with Other Elements
+
+\`\`\`markdown
+> #### The quarterly results look great!
+>
+> - Revenue was off the chart
+> - Profits were higher than ever
+>
+> *Everything* is going according to **plan**.
+\`\`\`
+
+**Rendered:**
+
+> #### The quarterly results look great!
+>
+> - Revenue was off the chart
+> - Profits were higher than ever
+>
+> *Everything* is going according to **plan**.
+
+---
+
+## Tables
+
+### Basic Table
+
+\`\`\`markdown
+| Header 1 | Header 2 | Header 3 |
+|----------|----------|----------|
+| Cell 1   | Cell 2   | Cell 3   |
+| Cell 4   | Cell 5   | Cell 6   |
+\`\`\`
+
+**Rendered:**
+
+| Header 1 | Header 2 | Header 3 |
+|----------|----------|----------|
+| Cell 1   | Cell 2   | Cell 3   |
+| Cell 4   | Cell 5   | Cell 6   |
+
+### Alignment
+
+\`\`\`markdown
+| Left    | Center  | Right   |
+|:--------|:-------:|--------:|
+| Text    | Text    | Text    |
+| Aligned | Aligned | Aligned |
+\`\`\`
+
+**Rendered:**
+
+| Left    | Center  | Right   |
+|:--------|:-------:|--------:|
+| Text    | Text    | Text    |
+| Aligned | Aligned | Aligned |
+
+### Formatting in Tables
+
+You can use **bold**, *italic*, \`code\`, and [links](https://example.com) within table cells.
+
+---
+
+## Task Lists
+
+Create interactive checklists:
+
+\`\`\`markdown
+- [x] Completed task
+- [x] Another completed task
+- [ ] Incomplete task
+- [ ] Another incomplete task
+\`\`\`
+
+**Rendered:**
+
+- [x] Completed task
+- [x] Another completed task
+- [ ] Incomplete task
+- [ ] Another incomplete task
+
+---
+
+## Extended Syntax
+
+These features are supported by GitHub Flavored Markdown (GFM) and many other processors.
+
+### Footnotes
+
+\`\`\`markdown
+Here's a sentence with a footnote.[^1]
+
+[^1]: This is the footnote content.
+\`\`\`
+
+**Rendered:**
+
+Here's a sentence with a footnote.[^1]
+
+[^1]: This is the footnote content.
+
+### Definition Lists
+
+\`\`\`markdown
+First Term
+: This is the definition of the first term.
+
+Second Term
+: This is one definition of the second term.
+: This is another definition of the second term.
+\`\`\`
+
+**Rendered:**
+
+First Term
+: This is the definition of the first term.
+
+Second Term
+: This is one definition of the second term.
+: This is another definition of the second term.
+
+### Heading IDs
+
+Create custom IDs for direct linking:
+
+\`\`\`markdown
+### My Heading {#custom-id}
+
+[Link to that heading](#custom-id)
+\`\`\`
+
+**Rendered:**
+
+### My Heading {#custom-id}
+
+[Link to that heading](#custom-id)
+
+### Emoji
+
+Two ways to add emoji:
+
+1. **Copy and paste:** 🎉 ✨ 🚀 💡
+2. **Shortcodes:** \`:rocket:\` renders as 🚀
+
+### Highlight
+
+\`\`\`markdown
+I need to highlight ==these words==
+\`\`\`
+
+**Rendered:**
+
+I need to highlight ==these words==
+
+Or use HTML: \`<mark>highlighted text</mark>\`
+
+### Subscript and Superscript
+
+\`\`\`markdown
+H~2~O (subscript)
+X^2^ (superscript)
+\`\`\`
+
+Or use HTML:
+- \`H<sub>2</sub>O\` → H<sub>2</sub>O
+- \`X<sup>2</sup>\` → X<sup>2</sup>
+
+### Automatic URL Linking
+
+Many processors automatically convert URLs:
+
+\`\`\`markdown
+http://www.example.com
+\`\`\`
+
+To prevent: \`\`http://www.example.com\`\`
+
+---
+
+## Horizontal Rules
+
+Create dividers with three or more:
+
+\`\`\`markdown
+---
+***
+___
+\`\`\`
+
+**Rendered:**
+
+---
+
+
+***
+
+___
+
+---
+
+## Line Breaks
+
+End a line with two spaces and press return, or use \`<br>\`:
+
+\`\`\`markdown
+First line with two spaces  
+Second line
+
+Or use HTML:<br>
+Second line
+\`\`\`
+
+---
+
+## Escaping Characters
+
+Use backslash to escape special characters:
+
+\`\`\`markdown
+\\* Not a bullet
+\\# Not a heading
+\\[Not a link\\]
+\`\`\`
+
+---
+
+## 📚 Additional Resources
+
+- Use this viewer to practice and experiment
+- Check GFM (GitHub Flavored Markdown) for platform-specific features
+- Test syntax in your target application
+
+---
+
+**Happy Markdown Writing!** 🎉✨`,
+
+            'mermaid-examples': `# 📊 Mermaid Guide 
+
+About Mermaid
+Mermaid lets you create diagrams and visualizations using text and code.
+
+Mermaid is a JavaScript based diagramming and charting tool that uses Markdown-inspired text definitions and a renderer to create and modify complex diagrams. The main purpose of Mermaid is to help documentation catch up with development.
+
+Diagramming and documentation costs precious developer time and gets outdated quickly. But not having diagrams or docs ruins productivity and hurts organizational learning. Mermaid addresses this problem by enabling users to create easily modifiable diagrams, it can also be made part of production scripts (and other pieces of code).
+
+# Diagram Types
+===============
+
+\`## Heading level 2\`
+
+\`<h2>Heading level 2</h2>\`
+
+Heading level 2
+---------------
+
+\`### Heading level 3\`
+
+\`<h3>Heading level 3</h3>\`
+
+### Heading level 3
+
+\`#### Heading level 4\`
+
+\`<h4>Heading level 4</h4>\`
+
+#### Heading level 4
+
+\`##### Heading level 5\`
+
+\`<h5>Heading level 5</h5>\`
+
+##### Heading level 5
+
+\`###### Heading level 6\`
+
+\`<h6>Heading level 6</h6>\`
+
+###### Heading level 6
+
+### Alternate Syntax[](#alternate-syntax)
+
+Alternatively, on the line below the text, add any number of \`==\` characters for heading level 1 or \`--\` characters for heading level 2.
+
+Markdown
+
+HTML
+
+Rendered Output
+
+\`Heading level 1   ===============\`
+
+\`<h1>Heading level 1</h1>\`
+
+Heading level 1
+===============
+
+\`Heading level 2   ---------------\`
+
+\`<h2>Heading level 2</h2>\`
+
+Heading level 2
+---------------
+
+### Heading Best Practices[](#heading-best-practices)
+
+Markdown applications don’t agree on how to handle a missing space between the number signs (\`#\`) and the heading name. For compatibility, always put a space between the number signs and the heading name.
+
+✅  Do this
+
+❌  Don't do this
+
+\`# Here's a Heading      \`
+
+\`#Here's a Heading\`
+
+You should also put blank lines before and after a heading for compatibility.
+
+✅  Do this
+
+❌  Don't do this
+
+\`Try to put a blank line before...      # Heading      ...and after a heading.\`
+
+\`Without blank lines, this might not look right.   # Heading   Don't do this!\`
+
+Paragraphs[](#paragraphs-1)
+---------------------------
+
+To create paragraphs, use a blank line to separate one or more lines of text.
+
+Markdown
+
+HTML
+
+Rendered Output
+
+\`I really like using Markdown.      I think I'll use it to format all of my documents from now on.\`
+
+\`<p>I really like using Markdown.</p>      <p>I think I'll use it to format all of my documents from now on.</p>\`
+
+I really like using Markdown.
+
+I think I'll use it to format all of my documents from now on.
+
+### Paragraph Best Practices[](#paragraph-best-practices)
+
+Unless the [paragraph is in a list](/basic-syntax/#paragraphs), don’t indent paragraphs with spaces or tabs.
+
+**Note:** If you need to indent paragraphs in the output, see the section on how to [indent (tab)](/hacks/#indent-tab).
+
+✅  Do this
+
+❌  Don't do this
+
+\`Don't put tabs or spaces in front of your paragraphs.      Keep lines left-aligned like this.      \`
+
+    \`This can result in unexpected formatting problems.        Don't add tabs or spaces in front of paragraphs.\`
+
+Line Breaks[](#line-breaks)
+---------------------------
+
+To create a line break or new line (\`<br>\`), end a line with two or more spaces, and then type return.
+
+Markdown
+
+HTML
+
+Rendered Output
+
+\`This is the first line.     And this is the second line.\`
+
+\`<p>This is the first line.<br>   And this is the second line.</p>\`
+
+This is the first line.  
+And this is the second line.
+
+### Line Break Best Practices[](#line-break-best-practices)
+
+You can use two or more spaces (commonly referred to as “trailing whitespace”) for line breaks in nearly every Markdown application, but it’s controversial. It’s hard to see trailing whitespace in an editor, and many people accidentally or intentionally put two spaces after every sentence. For this reason, you may want to use something other than trailing whitespace for line breaks. If your Markdown application [supports HTML](/basic-syntax/#html), you can use the \`<br>\` HTML tag.
+
+For compatibility, use trailing white space or the \`<br>\` HTML tag at the end of the line.
+
+There are two other options I don’t recommend using. CommonMark and a few other lightweight markup languages let you type a backslash (\`\`) at the end of the line, but not all Markdown applications support this, so it isn’t a great option from a compatibility perspective. And at least a couple lightweight markup languages don’t require anything at the end of the line — just type return and they’ll create a line break.
+
+✅  Do this
+
+❌  Don't do this
+
+\`First line with two spaces after.     And the next line.      First line with the HTML tag after.<br>   And the next line.      \`
+
+\`First line with a backslash after.\   And the next line.      First line with nothing after.   And the next line.      \`
+
+Emphasis[](#emphasis)
+---------------------
+
+You can add emphasis by making text bold or italic.
+
+### Bold[](#bold)
+
+To bold text, add two asterisks or underscores before and after a word or phrase. To bold the middle of a word for emphasis, add two asterisks without spaces around the letters.
+
+Markdown
+
+HTML
+
+Rendered Output
+
+\`I just love **bold text**.\`
+
+\`I just love <strong>bold text</strong>.\`
+
+I just love **bold text**.
+
+\`I just love __bold text__.\`
+
+\`I just love <strong>bold text</strong>.\`
+
+I just love **bold text**.
+
+\`Love**is**bold\`
+
+\`Love<strong>is</strong>bold\`
+
+Love**is**bold
+
+#### Bold Best Practices[](#bold-best-practices)
+
+Markdown applications don’t agree on how to handle underscores in the middle of a word. For compatibility, use asterisks to bold the middle of a word for emphasis.
+
+✅  Do this
+
+❌  Don't do this
+
+\`Love**is**bold\`
+
+\`Love__is__bold\`
+
+### Italic[](#italic)
+
+To italicize text, add one asterisk or underscore before and after a word or phrase. To italicize the middle of a word for emphasis, add one asterisk without spaces around the letters.
+
+Markdown
+
+HTML
+
+Rendered Output
+
+\`Italicized text is the *cat's meow*.\`
+
+\`Italicized text is the <em>cat's meow</em>.\`
+
+Italicized text is the _cat’s meow_.
+
+\`Italicized text is the _cat's meow_.\`
+
+\`Italicized text is the <em>cat's meow</em>.\`
+
+Italicized text is the _cat’s meow_.
+
+\`A*cat*meow\`
+
+\`A<em>cat</em>meow\`
+
+A_cat_meow
+
+#### Italic Best Practices[](#italic-best-practices)
+
+Markdown applications don’t agree on how to handle underscores in the middle of a word. For compatibility, use asterisks to italicize the middle of a word for emphasis.
+
+✅  Do this
+
+❌  Don't do this
+
+\`A*cat*meow\`
+
+\`A_cat_meow\`
+
+### Bold and Italic[](#bold-and-italic)
+
+To emphasize text with bold and italics at the same time, add three asterisks or underscores before and after a word or phrase. To bold and italicize the middle of a word for emphasis, add three asterisks without spaces around the letters.
+
+Markdown
+
+HTML
+
+Rendered Output
+
+\`This text is ***really important***.\`
+
+\`This text is <em><strong>really important</strong></em>.\`
+
+This text is _**really important**_.
+
+\`This text is ___really important___.\`
+
+\`This text is <em><strong>really important</strong></em>.\`
+
+This text is _**really important**_.
+
+\`This text is __*really important*__.\`
+
+\`This text is <em><strong>really important</strong></em>.\`
+
+This text is _**really important**_.
+
+\`This text is **_really important_**.\`
+
+\`This text is <em><strong>really important</strong></em>.\`
+
+This text is _**really important**_.
+
+\`This is really***very***important text.\`
+
+\`This is really<em><strong>very</strong></em>important text.\`
+
+This is really_**very**_important text.
+
+**Note:** The order of the \`em\` and \`strong\` tags might be reversed depending on the Markdown processor you're using.
+
+#### Bold and Italic Best Practices[](#bold-and-italic-best-practices)
+
+Markdown applications don’t agree on how to handle underscores in the middle of a word. For compatibility, use asterisks to bold and italicize the middle of a word for emphasis.
+
+✅  Do this
+
+❌  Don't do this
+
+\`This is really***very***important text.\`
+
+\`This is really___very___important text.\`
+
+Blockquotes[](#blockquotes-1)
+-----------------------------
+
+To create a blockquote, add a \`>\` in front of a paragraph.
+
+    > Dorothy followed her through many of the beautiful rooms in her castle.
+    
+
+The rendered output looks like this:
+
+> Dorothy followed her through many of the beautiful rooms in her castle.
+
+### Blockquotes with Multiple Paragraphs[](#blockquotes-with-multiple-paragraphs)
+
+Blockquotes can contain multiple paragraphs. Add a \`>\` on the blank lines between the paragraphs.
+\`\`\`markdown
+    > Dorothy followed her through many of the beautiful rooms in her castle.
+    >
+    > The Witch bade her clean the pots and kettles and sweep the floor and keep the fire fed with wood.
+    
+\`\`\`
+The rendered output looks like this:
+
+> Dorothy followed her through many of the beautiful rooms in her castle.
+> 
+> The Witch bade her clean the pots and kettles and sweep the floor and keep the fire fed with wood.
+
+### Nested Blockquotes[](#nested-blockquotes)
+
+Blockquotes can be nested. Add a \`>>\` in front of the paragraph you want to nest.
+\`\`\`markdown
+    > Dorothy followed her through many of the beautiful rooms in her castle.
+    >
+    >> The Witch bade her clean the pots and kettles and sweep the floor and keep the fire fed with wood.
+    
+\`\`\`
+The rendered output looks like this:
+
+> Dorothy followed her through many of the beautiful rooms in her castle.
+> 
+> > The Witch bade her clean the pots and kettles and sweep the floor and keep the fire fed with wood.
+
+### Blockquotes with Other Elements[](#blockquotes-with-other-elements)
+
+Blockquotes can contain other Markdown formatted elements. Not all elements can be used — you’ll need to experiment to see which ones work.
+\`\`\`markdown
+    > #### The quarterly results look great!
+    >
+    > - Revenue was off the chart.
+    > - Profits were higher than ever.
+    >
+    >  *Everything* is going according to **plan**.
+    
+\`\`\`
+The rendered output looks like this:
+
+> #### The quarterly results look great!
+> 
+> *   Revenue was off the chart.
+> *   Profits were higher than ever.
+> 
+> _Everything_ is going according to **plan**.
+
+### Blockquotes Best Practices[](#blockquotes-best-practices)
+
+For compatibility, put blank lines before and after blockquotes.
+
+✅  Do this
+
+❌  Don't do this
+
+\`Try to put a blank line before...      > This is a blockquote      ...and after a blockquote.\`
+
+\`Without blank lines, this might not look right.   > This is a blockquote   Don't do this!\`
+
+Lists[](#lists-1)
+-----------------
+
+You can organize items into ordered and unordered lists.
+
+### Ordered Lists[](#ordered-lists)
+
+To create an ordered list, add line items with numbers followed by periods. The numbers don’t have to be in numerical order, but the list should start with the number one.
+
+Markdown
+
+HTML
+
+Rendered Output
+
+\`1. First item   2. Second item   3. Third item   4. Fourth item\`
+
+\`<ol>     <li>First item</li>     <li>Second item</li>     <li>Third item</li>     <li>Fourth item</li>   </ol>\`
+
+1.  First item
+2.  Second item
+3.  Third item
+4.  Fourth item
+
+\`1. First item   1. Second item   1. Third item   1. Fourth item\`
+
+\`<ol>     <li>First item</li>     <li>Second item</li>     <li>Third item</li>     <li>Fourth item</li>   </ol>\`
+
+1.  First item
+2.  Second item
+3.  Third item
+4.  Fourth item
+
+\`1. First item   8. Second item   3. Third item   5. Fourth item\`
+
+\`<ol>     <li>First item</li>     <li>Second item</li>     <li>Third item</li>     <li>Fourth item</li>   </ol>\`
+
+1.  First item
+2.  Second item
+3.  Third item
+4.  Fourth item
+
+\`1. First item   2. Second item   3. Third item       1. Indented item       2. Indented item   4. Fourth item\`
+
+\`<ol>     <li>First item</li>     <li>Second item</li>     <li>Third item       <ol>         <li>Indented item</li>         <li>Indented item</li>       </ol>     </li>     <li>Fourth item</li>   </ol>\`
+
+1.  First item
+2.  Second item
+3.  Third item
+    1.  Indented item
+    2.  Indented item
+4.  Fourth item
+
+#### Ordered List Best Practices[](#ordered-list-best-practices)
+
+CommonMark and a few other lightweight markup languages let you use a parenthesis (\`)\`) as a delimiter (e.g., \`1) First item\`), but not all Markdown applications support this, so it isn’t a great option from a compatibility perspective. For compatibility, use periods only.
+
+✅  Do this
+
+❌  Don't do this
+
+\`1. First item   2. Second item\`
+
+\`1) First item   2) Second item\`
+
+### Unordered Lists[](#unordered-lists)
+
+To create an unordered list, add dashes (\`-\`), asterisks (\`*\`), or plus signs (\`+\`) in front of line items. Indent one or more items to create a nested list.
+
+Markdown
+
+HTML
+
+Rendered Output
+
+\`- First item   - Second item   - Third item   - Fourth item\`
+
+\`<ul>     <li>First item</li>     <li>Second item</li>     <li>Third item</li>     <li>Fourth item</li>   </ul>\`
+
+*   First item
+*   Second item
+*   Third item
+*   Fourth item
+
+\`* First item   * Second item   * Third item   * Fourth item\`
+
+\`<ul>     <li>First item</li>     <li>Second item</li>     <li>Third item</li>     <li>Fourth item</li>   </ul>\`
+
+*   First item
+*   Second item
+*   Third item
+*   Fourth item
+
+\`+ First item   + Second item   + Third item   + Fourth item\`
+
+\`<ul>     <li>First item</li>     <li>Second item</li>     <li>Third item</li>     <li>Fourth item</li>   </ul>\`
+
+*   First item
+*   Second item
+*   Third item
+*   Fourth item
+
+\`- First item   - Second item   - Third item       - Indented item       - Indented item   - Fourth item\`
+
+\`<ul>     <li>First item</li>     <li>Second item</li>     <li>Third item       <ul>         <li>Indented item</li>         <li>Indented item</li>       </ul>     </li>     <li>Fourth item</li>   </ul>\`
+
+*   First item
+*   Second item
+*   Third item
+    *   Indented item
+    *   Indented item
+*   Fourth item
+
+#### Starting Unordered List Items With Numbers[](#starting-unordered-list-items-with-numbers)
+
+If you need to start an unordered list item with a number followed by a period, you can use a backslash (\`\`) to [escape](#escaping-characters) the period.
+
+Markdown
+
+HTML
+
+Rendered Output
+
+\`- 1968\. A great year!   - I think 1969 was second best.\`
+
+\`<ul>     <li>1968. A great year!</li>     <li>I think 1969 was second best.</li>   </ul>\`
+
+*   1968\. A great year!
+*   I think 1969 was second best.
+
+#### Unordered List Best Practices[](#unordered-list-best-practices)
+
+Markdown applications don’t agree on how to handle different delimiters in the same list. For compatibility, don’t mix and match delimiters in the same list — pick one and stick with it.
+
+✅  Do this
+
+❌  Don't do this
+
+\`- First item   - Second item   - Third item   - Fourth item\`
+
+\`+ First item   * Second item   - Third item   + Fourth item\`
+
+### Adding Elements in Lists[](#adding-elements-in-lists)
+
+To add another element in a list while preserving the continuity of the list, indent the element four spaces or one tab, as shown in the following examples.
+
+**Tip:** If things don't appear the way you expect, double check that you've indented the elements in the list four spaces or one tab.
+
+#### Paragraphs[](#paragraphs)
+\`\`\`markdown
+    * This is the first list item.
+    * Here's the second list item.
+    
+        I need to add another paragraph below the second list item.
+    
+    * And here's the third list item.
+    
+\`\`\`
+The rendered output looks like this:
+
+*   This is the first list item.
+*   Here’s the second list item.
+    
+    I need to add another paragraph below the second list item.
+    
+*   And here’s the third list item.
+
+#### Blockquotes[](#blockquotes)
+
+    * This is the first list item.
+    * Here's the second list item.
+    
+        > A blockquote would look great below the second list item.
+    
+    * And here's the third list item.
+    
+
+The rendered output looks like this:
+
+*   This is the first list item.
+*   Here’s the second list item.
+    
+    > A blockquote would look great below the second list item.
+    
+*   And here’s the third list item.
+
+#### Code Blocks[](#code-blocks-1)
+
+[Code blocks](#code-blocks) are normally indented four spaces or one tab. When they’re in a list, indent them eight spaces or two tabs.
+
+    1. Open the file.
+    2. Find the following code block on line 21:
+
+            &lt;html&gt;
+              &lt;head&gt;
+                &lt;title&gt;Test&lt;/title&gt;
+              &lt;/head&gt;
+            &lt;/html&gt;
+
+    3. Update the title to match the name of your website.
+    
+
+The rendered output looks like this:
+
+1.  Open the file.
+2.  Find the following code block on line 21:
+    \`\`\`html
+         &lt;html&gt;
+              &lt;head&gt;
+                &lt;title&gt;Test&lt;/title&gt;
+              &lt;/head&gt;
+            &lt;/html&gt;
+    \`\`\`
+    
+3.  Update the title to match the name of your website.
+
+#### Images[](#images)
+\`\`\`markdown
+    1. Open the file containing the Linux mascot.
+    2. Marvel at its beauty.
+    
+        ![Tux, the Linux mascot](https://www.markdownguide.org/assets/images/tux.png)
+    
+    3. Close the file.
+\`\`\`
+
+The rendered output looks like this:
+
+1.  Open the file containing the Linux mascot.
+2.  Marvel at its beauty.
+    
+     ![Tux, the Linux mascot](https://www.markdownguide.org/assets/images/generated/assets/images/tux-1080.png)
+3.  Close the file.
+
+#### Lists[](#lists)
+
+You can nest an unordered list in an ordered list, or vice versa.
+
+    1. First item
+    2. Second item
+    3. Third item
+        - Indented item
+        - Indented item
+    4. Fourth item
+    
+
+The rendered output looks like this:
+
+1.  First item
+2.  Second item
+3.  Third item
+    *   Indented item
+    *   Indented item
+4.  Fourth item
+
+Code[](#code)
+-------------
+
+To denote a word or phrase as code, enclose it in backticks (\`\` \` \`\`).
+
+Markdown
+
+HTML
+
+Rendered Output
+
+\`\`At the command prompt, type \`nano\`.\`\`
+
+\`At the command prompt, type <code>nano</code>.\`
+
+At the command prompt, type \`nano\`.
+
+### Escaping Backticks[](#escaping-backticks)
+
+If the word or phrase you want to denote as code includes one or more backticks, you can escape it by enclosing the word or phrase in double backticks (\` \`\` \`).
+
+Markdown
+
+HTML
+
+Rendered Output
+
+\`\`\` \`\`Use \`code\` in your Markdown file.\`\` \`\`\`
+
+\`\`<code>Use \`code\` in your Markdown file.</code>\`\`
+
+\`\`Use \`code\` in your Markdown file.\`\`
+
+### Code Blocks[](#code-blocks)
+
+To create code blocks, indent every line of the block by at least four spaces or one tab.
+
+        <html>
+          <head>
+          </head>
+        </html>
+    
+
+The rendered output looks like this:
+
+    <html>
+      <head>
+      </head>
+    </html>
+    
+
+**Note:** To create code blocks without indenting lines, use [fenced code blocks](/extended-syntax/#fenced-code-blocks).
+
+Horizontal Rules[](#horizontal-rules)
+-------------------------------------
+
+To create a horizontal rule, use three or more asterisks (\`***\`), dashes (\`---\`), or underscores (\`___\`) on a line by themselves.
+\`\`\`markdown
+    ***
+    
+    ---
+    
+    _________________
+    
+\`\`\`
+
+The rendered output of all three looks identical:
+
+* * *
+
+### Horizontal Rule Best Practices[](#horizontal-rule-best-practices)
+
+For compatibility, put blank lines before and after horizontal rules.
+
+✅  Do this
+
+❌  Don't do this
+
+\`Try to put a blank line before...      ---      ...and after a horizontal rule.\`
+
+\`Without blank lines, this would be a heading.   ---   Don't do this!\`
+
+Links[](#links)
+---------------
+
+To create a link, enclose the link text in brackets (e.g., \`[Duck Duck Go]\`) and then follow it immediately with the URL in parentheses (e.g., \`(https://duckduckgo.com)\`).
+\`\`\`markdown
+    My favorite search engine is [Duck Duck Go](https://duckduckgo.com).
+    
+\`\`\`
+The rendered output looks like this:
+
+My favorite search engine is [Duck Duck Go](https://duckduckgo.com).
+
+**Note:** To link to an element on the same page, see [linking to heading IDs](/extended-syntax/#linking-to-heading-ids). To create a link that opens in a new tab or window, see the section on [link targets](/hacks/#link-targets).
+
+### Adding Titles[](#adding-titles)
+
+You can optionally add a title for a link. This will appear as a tooltip when the user hovers over the link. To add a title, enclose it in quotation marks after the URL.
+\`\`\`markdown
+    My favorite search engine is [Duck Duck Go](https://duckduckgo.com "The best search engine for privacy").
+    
+\`\`\`
+The rendered output looks like this:
+
+My favorite search engine is [Duck Duck Go](https://duckduckgo.com "The best search engine for privacy").
+
+### URLs and Email Addresses[](#urls-and-email-addresses)
+
+To quickly turn a URL or email address into a link, enclose it in angle brackets.
+\`\`\`markdown
+
+    &lt;https://www.markdownguide.org&gt;
+    &lt;fake@example.com&gt;
+
+\`\`\`  
+
+The rendered output looks like this:
+
+[https://www.markdownguide.org](https://www.markdownguide.org)  
+[fake@example.com](mailto:fake@example.com)
+
+### Formatting Links[](#formatting-links)
+
+To [emphasize](#emphasis) links, add asterisks before and after the brackets and parentheses. To denote links as [code](#code), add backticks in the brackets.
+\`\`\`markdown
+    I love supporting the **[EFF](https://eff.org)**.
+    This is the *[Markdown Guide](https://www.markdownguide.org)*.
+    See the section on [\`code\`](#code).
+\`\`\`    
+
+The rendered output looks like this:
+
+I love supporting the **[EFF](https://eff.org)**.  
+This is the _[Markdown Guide](https://www.markdownguide.org)_.  
+See the section on [\`code\`](#code).
+
+### Reference-style Links[](#reference-style-links)
+
+Reference-style links are a special kind of link that make URLs easier to display and read in Markdown. Reference-style links are constructed in two parts: the part you keep inline with your text and the part you store somewhere else in the file to keep the text easy to read.
+
+#### Formatting the First Part of the Link[](#formatting-the-first-part-of-the-link)
+
+The first part of a reference-style link is formatted with two sets of brackets. The first set of brackets surrounds the text that should appear linked. The second set of brackets displays a label used to point to the link you’re storing elsewhere in your document.
+
+Although not required, you can include a space between the first and second set of brackets. The label in the second set of brackets is not case sensitive and can include letters, numbers, spaces, or punctuation.
+
+This means the following example formats are roughly equivalent for the first part of the link:
+
+*   \`[hobbit-hole][1]\`
+*   \`[hobbit-hole] [1]\`
+
+#### Formatting the Second Part of the Link[](#formatting-the-second-part-of-the-link)
+
+The second part of a reference-style link is formatted with the following attributes:
+
+1.  The label, in brackets, followed immediately by a colon and at least one space (e.g., \`[label]:\` ).
+2.  The URL for the link, which you can optionally enclose in angle brackets.
+3.  The optional title for the link, which you can enclose in double quotes, single quotes, or parentheses.
+
+This means the following example formats are all roughly equivalent for the second part of the link:
+
+*   \`[1]: https://en.wikipedia.org/wiki/Hobbit#Lifestyle\`
+*   \`[1]: https://en.wikipedia.org/wiki/Hobbit#Lifestyle "Hobbit lifestyles"\`
+*   \`[1]: https://en.wikipedia.org/wiki/Hobbit#Lifestyle 'Hobbit lifestyles'\`
+*   \`[1]: https://en.wikipedia.org/wiki/Hobbit#Lifestyle (Hobbit lifestyles)\`
+*   \`[1]: <https://en.wikipedia.org/wiki/Hobbit#Lifestyle> "Hobbit lifestyles"\`
+*   \`[1]: <https://en.wikipedia.org/wiki/Hobbit#Lifestyle> 'Hobbit lifestyles'\`
+*   \`[1]: <https://en.wikipedia.org/wiki/Hobbit#Lifestyle> (Hobbit lifestyles)\`
+
+You can place this second part of the link anywhere in your Markdown document. Some people place them immediately after the paragraph in which they appear while other people place them at the end of the document (like endnotes or footnotes).
+
+#### An Example Putting the Parts Together[](#an-example-putting-the-parts-together)
+
+Say you add a URL as a [standard URL link](#links) to a paragraph and it looks like this in Markdown:
+\`\`\`markdown
+    In a hole in the ground there lived a hobbit. Not a nasty, dirty, wet hole, filled with the ends
+    of worms and an oozy smell, nor yet a dry, bare, sandy hole with nothing in it to sit down on or to
+    eat: it was a [hobbit-hole](https://en.wikipedia.org/wiki/Hobbit#Lifestyle "Hobbit lifestyles"), and that means comfort.
+
+\`\`\`
+Though it may point to interesting additional information, the URL as displayed really doesn’t add much to the existing raw text other than making it harder to read. To fix that, you could format the URL like this instead:
+\`\`\`markdown
+    In a hole in the ground there lived a hobbit. Not a nasty, dirty, wet hole, filled with the ends
+    of worms and an oozy smell, nor yet a dry, bare, sandy hole with nothing in it to sit down on or to
+    eat: it was a [hobbit-hole][1], and that means comfort.
+    
+    [1]: <https://en.wikipedia.org/wiki/Hobbit#Lifestyle> "Hobbit lifestyles"
+    
+\`\`\`
+In both instances above, the rendered output would be identical:
+
+> In a hole in the ground there lived a hobbit. Not a nasty, dirty, wet hole, filled with the ends of worms and an oozy smell, nor yet a dry, bare, sandy hole with nothing in it to sit down on or to eat: it was a [hobbit-hole](https://en.wikipedia.org/wiki/Hobbit#Lifestyle "Hobbit lifestyles"), and that means comfort.
+
+and the HTML for the link would be:
+\`\`\`markdown
+    <a href="https://en.wikipedia.org/wiki/Hobbit#Lifestyle" title="Hobbit lifestyles">hobbit-hole</a>
+\`\`\`
+
+### Link Best Practices[](#link-best-practices)
+
+Markdown applications don’t agree on how to handle spaces in the middle of a URL. For compatibility, try to URL encode any spaces with \`%20\`. Alternatively, if your Markdown application [supports HTML](#html), you could use the \`a\` HTML tag.
+
+✅  Do this
+
+❌  Don't do this
+
+\`[link](https://www.example.com/my%20great%20page)      <a href="https://www.example.com/my great page">link</a>      \`
+
+\`[link](https://www.example.com/my great page)      \`
+
+Parentheses in the middle of a URL can also be problematic. For compatibility, try to URL encode the opening parenthesis (\`(\`) with \`%28\` and the closing parenthesis (\`)\`) with \`%29\`. Alternatively, if your Markdown application [supports HTML](#html), you could use the \`a\` HTML tag.
+
+✅  Do this
+
+❌  Don't do this
+
+\`[a novel](https://en.wikipedia.org/wiki/The_Milagro_Beanfield_War_%28novel%29)      <a href="https://en.wikipedia.org/wiki/The_Milagro_Beanfield_War_(novel)">a novel</a>      \`
+
+\`[a novel](https://en.wikipedia.org/wiki/The_Milagro_Beanfield_War_(novel))\`
+
+Images[](#images-1)
+-------------------
+
+To add an image, add an exclamation mark (\`!\`), followed by alt text in brackets, and the path or URL to the image asset in parentheses. You can optionally add a title in quotation marks after the path or URL.
+\`\`\`markdown
+    ![The San Juan Mountains are beautiful](https://www.markdownguide.org/assets/images/san-juan-mountains.jpg "San Juan Mountains")
+\`\`\`
+
+The rendered output looks like this:
+
+ ![The San Juan Mountains are beautiful](https://www.markdownguide.org/assets/images/generated/assets/images/san-juan-mountains-1080.jpg "San Juan Mountains")
+
+**Note:** To resize an image, see the section on [image size](/hacks/#image-size). To add a caption, see the section on [image captions](/hacks/#image-captions).
+
+### Linking Images[](#linking-images)
+
+To add a link to an image, enclose the Markdown for the image in brackets, and then add the link in parentheses.
+\`\`\`markdown
+    [![An old rock in the desert](https://www.markdownguide.org/assets/images/shiprock.jpg "Shiprock, New Mexico by Beau Rogers")](https://www.flickr.com/photos/beaurogers/31833779864/in/photolist-Qv3rFw-34mt9F-a9Cmfy-5Ha3Zi-9msKdv-o3hgjr-hWpUte-4WMsJ1-KUQ8N-deshUb-vssBD-6CQci6-8AFCiD-zsJWT-nNfsgB-dPDwZJ-bn9JGn-5HtSXY-6CUhAL-a4UTXB-ugPum-KUPSo-fBLNm-6CUmpy-4WMsc9-8a7D3T-83KJev-6CQ2bK-nNusHJ-a78rQH-nw3NvT-7aq2qf-8wwBso-3nNceh-ugSKP-4mh4kh-bbeeqH-a7biME-q3PtTf-brFpgb-cg38zw-bXMZc-nJPELD-f58Lmo-bXMYG-bz8AAi-bxNtNT-bXMYi-bXMY6-bXMYv)
+
+\`\`\`
+
+The rendered output looks like this:
+
+ [![An old rock in the desert](https://www.markdownguide.org/assets/images/generated/assets/images/shiprock-1080.jpg "Shiprock, New Mexico by Beau Rogers")](https://www.flickr.com/photos/beaurogers/31833779864/in/photolist-Qv3rFw-34mt9F-a9Cmfy-5Ha3Zi-9msKdv-o3hgjr-hWpUte-4WMsJ1-KUQ8N-deshUb-vssBD-6CQci6-8AFCiD-zsJWT-nNfsgB-dPDwZJ-bn9JGn-5HtSXY-6CUhAL-a4UTXB-ugPum-KUPSo-fBLNm-6CUmpy-4WMsc9-8a7D3T-83KJev-6CQ2bK-nNusHJ-a78rQH-nw3NvT-7aq2qf-8wwBso-3nNceh-ugSKP-4mh4kh-bbeeqH-a7biME-q3PtTf-brFpgb-cg38zw-bXMZc-nJPELD-f58Lmo-bXMYG-bz8AAi-bxNtNT-bXMYi-bXMY6-bXMYv)
+
+Escaping Characters[](#escaping-characters)
+-------------------------------------------
+
+To display a literal character that would otherwise be used to format text in a Markdown document, add a backslash (\`\`) in front of the character.
+\`\`\`markdown
+    \* Without the backslash, this would be a bullet in an unordered list.
+    
+\`\`\`
+The rendered output looks like this:
+
+\* Without the backslash, this would be a bullet in an unordered list.
+
+### Characters You Can Escape[](#characters-you-can-escape)
+
+You can use a backslash to escape the following characters.
+
+Character
+
+Name
+
+\\
+
+backslash
+
+\`\`
+
+backtick (see also [escaping backticks in code](#escaping-backticks))
+
+\*
+
+asterisk
+
+\_
+
+underscore
+
+{ }
+
+curly braces
+
+\[ \]
+
+brackets
+
+< >
+
+angle brackets
+
+( )
+
+parentheses
+
+#
+
+pound sign
+
++
+
+plus sign
+
+\-
+
+minus sign (hyphen)
+
+.
+
+dot
+
+!
+
+exclamation mark
+
+|
+
+pipe (see also [escaping pipe in tables](/extended-syntax/#escaping-pipe-characters-in-tables))
+
+HTML[](#html)
+-------------
+
+Many Markdown applications allow you to use HTML tags in Markdown-formatted text. This is helpful if you prefer certain HTML tags to Markdown syntax. For example, some people find it easier to use HTML tags for images. Using HTML is also helpful when you need to change the attributes of an element, like specifying the [color of text](/hacks/#color) or changing the width of an image.
+
+To use HTML, place the tags in the text of your Markdown-formatted file.
+\`\`\`markdown
+    This **word** is bold. This <em>word</em> is italic.
+    
+\`\`\`
+The rendered output looks like this:
+
+This **word** is bold. This _word_ is italic.
+
+### HTML Best Practices[](#html-best-practices)
+
+For security reasons, not all Markdown applications support HTML in Markdown documents. When in doubt, check your Markdown application’s documentation. Some applications support only a subset of HTML tags.
+
+Use blank lines to separate block-level HTML elements like \`<div>\`, \`<table>\`, \`<pre>\`, and \`<p>\` from the surrounding content. Try not to indent the tags with tabs or spaces — that can interfere with the formatting.
+
+You can’t use Markdown syntax inside block-level HTML tags. For example, \`<p>italic and **bold**</p>\` won’t work.
+
+`,
+
+            'markdown-extended-syntax': `# 📚 Extended Syntax[](#extended-syntax)
+
+The [basic syntax](/basic-syntax/) outlined in the original Markdown design document added many of the elements needed on a day-to-day basis, but it wasn’t enough for some people. That’s where extended syntax comes in.
+
+Several individuals and organizations took it upon themselves to extend the basic syntax by adding additional elements like tables, code blocks, syntax highlighting, URL auto-linking, and footnotes. These elements can be enabled by using a lightweight markup language that builds upon the basic Markdown syntax, or by adding an extension to a compatible Markdown processor.
+
+Availability[](#availability)
+-----------------------------
+
+Not all Markdown applications support extended syntax elements. You’ll need to check whether or not the lightweight markup language your application is using supports the extended syntax elements you want to use. If it doesn’t, it may still be possible to enable extensions in your Markdown processor.
+
+### Lightweight Markup Languages[](#lightweight-markup-languages)
+
+There are several lightweight markup languages that are _supersets_ of Markdown. They include basic syntax and build upon it by adding additional elements like tables, code blocks, syntax highlighting, URL auto-linking, and footnotes. Many of the most popular Markdown applications use one of the following lightweight markup languages:
+
+*   [CommonMark](https://commonmark.org)
+*   [GitHub Flavored Markdown (GFM)](https://github.github.com/gfm/)
+*   [Markdown Extra](https://michelf.ca/projects/php-markdown/extra/)
+*   [MultiMarkdown](https://fletcherpenney.net/multimarkdown/)
+*   [R Markdown](https://rmarkdown.rstudio.com/)
+
+### Markdown Processors[](#markdown-processors)
+
+There are [dozens of Markdown processors](https://github.com/markdown/markdown.github.com/wiki/Implementations) available. Many of them allow you to add extensions that enable extended syntax elements. Check your processor’s documentation for more information.
+
+Tables[](#tables)
+-----------------
+
+To add a table, use three or more hyphens (\`---\`) to create each column’s header, and use pipes (\`|\`) to separate each column. For compatibility, you should also add a pipe on either end of the row.
+\`\`\`markdown
+    | Syntax      | Description |
+    | ----------- | ----------- |
+    | Header      | Title       |
+    | Paragraph   | Text        |
+    
+\`\`\`
+The rendered output looks like this:
+
+Syntax
+
+Description
+
+Header
+
+Title
+
+Paragraph
+
+Text
+
+Cell widths can vary, as shown below. The rendered output will look the same.
+\`\`\`markdown
+    | Syntax | Description |
+    | --- | ----------- |
+    | Header | Title |
+    | Paragraph | Text |
+    
+\`\`\`
+**Tip:** Creating tables with hyphens and pipes can be tedious. To speed up the process, try using the [Markdown Tables Generator](https://www.tablesgenerator.com/markdown_tables) or [AnyWayData Markdown Export](https://anywaydata.com). Build a table using the graphical interface, and then copy the generated Markdown-formatted text into your file.
+
+### Alignment[](#alignment)
+
+You can align text in the columns to the left, right, or center by adding a colon (\`:\`) to the left, right, or on both side of the hyphens within the header row.
+\`\`\`markdown
+    | Syntax      | Description | Test Text     |
+    | :---        |    :----:   |          ---: |
+    | Header      | Title       | Here's this   |
+    | Paragraph   | Text        | And more      |
+    
+\`\`\`
+The rendered output looks like this:
+
+Syntax
+
+Description
+
+Test Text
+
+Header
+
+Title
+
+Here’s this
+
+Paragraph
+
+Text
+
+And more
+
+### Formatting Text in Tables[](#formatting-text-in-tables)
+
+You can format the text within tables. For example, you can add [links](/basic-syntax/#links), [code](/basic-syntax/#code-1) (words or phrases in backticks (\`\` \` \`\`) only, not [code blocks](/basic-syntax/#code-blocks)), and [emphasis](/basic-syntax/#emphasis).
+
+You can’t use headings, blockquotes, lists, horizontal rules, images, or most HTML tags.
+
+**Tip:** You can use HTML to create [line breaks](/hacks/#line-breaks-within-table-cells) and add [lists](/hacks/#lists-within-table-cells) within table cells.
+
+### Escaping Pipe Characters in Tables[](#escaping-pipe-characters-in-tables)
+
+You can display a pipe (\`|\`) character in a table by using its HTML character code (\`&#124;\`).
+
+Fenced Code Blocks[](#fenced-code-blocks)
+-----------------------------------------
+
+The basic Markdown syntax allows you to create [code blocks](/basic-syntax/#code-blocks) by indenting lines by four spaces or one tab. If you find that inconvenient, try using fenced code blocks. Depending on your Markdown processor or editor, you’ll use three backticks (\` \`\`\` \`) or three tildes (\`~~~\`) on the lines before and after the code block. The best part? You don’t have to indent any lines!
+\`\`\`markdown
+    \`\`\`
+    {
+      "firstName": "John",
+      "lastName": "Smith",
+      "age": 25
+    }
+    \`\`\`
+    
+\`\`\`
+The rendered output looks like this:
+\`\`\`markdown
+    {
+      "firstName": "John",
+      "lastName": "Smith",
+      "age": 25
+    }
+    
+\`\`\`
+**Tip:** Need to display backticks inside a code block? See [this section](/basic-syntax/#escaping-backticks) to learn how to escape them.
+
+### Syntax Highlighting[](#syntax-highlighting)
+
+Many Markdown processors support syntax highlighting for fenced code blocks. This feature allows you to add color highlighting for whatever language your code was written in. To add syntax highlighting, specify a language next to the backticks before the fenced code block.
+\`\`\`markdown
+    \`\`\`json
+    {
+      "firstName": "John",
+      "lastName": "Smith",
+      "age": 25
+    }
+    \`\`\`
+    
+\`\`\`
+The rendered output looks like this:
+\`\`\`json
+    {
+      "firstName": "John",
+      "lastName": "Smith",
+      "age": 25
+    }
+    
+\`\`\`
+Footnotes[](#footnotes)
+-----------------------
+
+Footnotes allow you to add notes and references without cluttering the body of the document. When you create a footnote, a superscript number with a link appears where you added the footnote reference. Readers can click the link to jump to the content of the footnote at the bottom of the page.
+
+To create a footnote reference, add a caret and an identifier inside brackets (\`[^1]\`). Identifiers can be numbers or words, but they can’t contain spaces or tabs. Identifiers only correlate the footnote reference with the footnote itself — in the output, footnotes are numbered sequentially.
+
+Add the footnote using another caret and number inside brackets with a colon and text (\`[^1]: My footnote.\`). You don’t have to put footnotes at the end of the document. You can put them anywhere except inside other elements like lists, block quotes, and tables.
+\`\`\`markdown
+    Here's a simple footnote,[^1] and here's a longer one.[^bignote]
+    
+    [^1]: This is the first footnote.
+    
+    [^bignote]: Here's one with multiple paragraphs and code.
+    
+        Indent paragraphs to include them in the footnote.
+    
+        \`{ my code }\`
+    
+        Add as many paragraphs as you like.
+    
+\`\`\`
+The rendered output looks like this:
+
+Here’s a simple footnote,[1](#fn:1) and here’s a longer one.[2](#fn:bignote)
+
+1.  This is the first footnote. [↩](#fnref:1)
+    
+2.  Here’s one with multiple paragraphs and code.
+    
+    Indent paragraphs to include them in the footnote.
+    
+    \`{ my code }\`
+    
+    Add as many paragraphs as you like. [↩](#fnref:bignote)
+    
+
+Heading IDs[](#heading-ids)
+---------------------------
+
+Many Markdown processors support custom IDs for [headings](/basic-syntax/#headings) — some Markdown processors automatically add them. Adding custom IDs allows you to link directly to headings and modify them with CSS. To add a custom heading ID, enclose the custom ID in curly braces on the same line as the heading.
+\`\`\`markdown
+    ### My Great Heading {#custom-id}
+    
+\`\`\`
+The HTML looks like this:
+\`\`\`html
+    <h3 id="custom-id">My Great Heading</h3>
+    
+\`\`\`
+### Linking to Heading IDs[](#linking-to-heading-ids)
+
+You can link to headings with custom IDs in the file by creating a [standard link](/basic-syntax/#links) with a number sign (\`#\`) followed by the custom heading ID. These are commonly referred to as _anchor links_.
+
+Markdown
+
+HTML
+
+Rendered Output
+
+\`[Heading IDs](#heading-ids)\`
+
+\`<a href="#heading-ids">Heading IDs</a>\`
+
+[Heading IDs](#heading-ids)
+
+Other websites can link to the heading by adding the custom heading ID to the full URL of the webpage (e.g, \`[Heading IDs](https://www.markdownguide.org/extended-syntax#heading-ids)\`).
+
+Definition Lists[](#definition-lists)
+-------------------------------------
+
+Some Markdown processors allow you to create _definition lists_ of terms and their corresponding definitions. To create a definition list, type the term on the first line. On the next line, type a colon followed by a space and the definition.
+\`\`\`markdown
+    First Term
+    : This is the definition of the first term.
+    
+    Second Term
+    : This is one definition of the second term.
+    : This is another definition of the second term.
+    
+\`\`\`
+The HTML looks like this:
+\`\`\`html
+    <dl>
+      <dt>First Term</dt>
+      <dd>This is the definition of the first term.</dd>
+      <dt>Second Term</dt>
+      <dd>This is one definition of the second term. </dd>
+      <dd>This is another definition of the second term.</dd>
+    </dl>
+    
+\`\`\`
+The rendered output looks like this:
+
+First Term
+
+This is the definition of the first term.
+
+Second Term
+
+This is one definition of the second term.
+
+This is another definition of the second term.
+
+Strikethrough[](#strikethrough)
+-------------------------------
+
+You can strikethrough words by putting a horizontal line through the center of them. The result looks like this. This feature allows you to indicate that certain words are a mistake not meant for inclusion in the document. To strikethrough words, use two tilde symbols (\`~~\`) before and after the words.
+\`\`\`markdown
+    ~~The world is flat.~~ We now know that the world is round.
+    
+\`\`\`
+The rendered output looks like this:
+
+~~The world is flat.~~ We now know that the world is round.
+
+Task Lists[](#task-lists)
+-------------------------
+
+Task lists (also referred to as _checklists_ and _todo_ lists) allow you to create a list of items with checkboxes. In Markdown applications that support task lists, checkboxes will be displayed next to the content. To create a task list, add dashes (\`-\`) and brackets with a space (\`[ ]\`) in front of task list items. To select a checkbox, add an \`x\` in between the brackets (\`[x]\`).
+\`\`\`markdown
+    - [x] Write the press release
+    - [ ] Update the website
+    - [ ] Contact the media
+    
+\`\`\`
+The rendered output looks like this:
+
+![Markdown task list](https://www.markdownguide.org/assets/images/tasklist.png)
+
+Emoji[](#emoji)
+---------------
+
+There are two ways to add emoji to Markdown files: copy and paste the emoji into your Markdown-formatted text, or type _emoji shortcodes_.
+
+### Copying and Pasting Emoji[](#copying-and-pasting-emoji)
+
+In most cases, you can simply copy an emoji from a source like [Emojipedia](https://emojipedia.org/) and paste it into your document. Many Markdown applications will automatically display the emoji in the Markdown-formatted text. The HTML and PDF files you export from your Markdown application should display the emoji.
+
+**Tip:** If you're using a static site generator, make sure you [encode HTML pages as UTF-8](https://www.w3.org/International/tutorials/tutorial-char-enc/).
+
+### Using Emoji Shortcodes[](#using-emoji-shortcodes)
+
+Some Markdown applications allow you to insert emoji by typing emoji shortcodes. These begin and end with a colon and include the name of an emoji.
+\`\`\`markdown
+    Gone camping! :tent: Be back soon.
+    
+    That is so funny! :joy:
+    
+\`\`\`
+The rendered output looks like this:
+
+Gone camping! ⛺ Be back soon.
+
+That is so funny! 😂
+
+**Note:** You can use this [list of emoji shortcodes](https://gist.github.com/rxaviers/7360908), but keep in mind that emoji shortcodes vary from application to application. Refer to your Markdown application's documentation for more information.
+
+Highlight[](#highlight)
+-----------------------
+
+This isn’t common, but some Markdown processors allow you to highlight text. The result looks like this. To highlight words, use two equal signs (\`==\`) before and after the words.
+\`\`\`markdown
+    I need to highlight these ==very important words==.
+    
+\`\`\`
+The rendered output looks like this:
+
+I need to highlight these very important words.
+
+Alternatively, if your Markdown application supports [HTML](/basic-syntax/#html), you can use the \`mark\` HTML tag.
+\`\`\`markdown
+    I need to highlight these <mark>very important words</mark>.
+    
+\`\`\`
+Subscript[](#subscript)
+-----------------------
+
+This isn’t common, but some Markdown processors allow you to use _subscript_ to position one or more characters slightly below the normal line of type. To create a subscript, use one tilde symbol (\`~\`) before and after the characters.
+\`\`\`markdown
+    H~2~O
+    
+\`\`\`
+The rendered output looks like this:
+
+H~2~O
+
+**Tip:** Be sure to test this in your Markdown application before using it. Some Markdown applications use one tilde symbol before and after words not for subscript, but for [strikethrough](/extended-syntax/#strikethrough).
+
+Alternatively, if your Markdown application supports [HTML](/basic-syntax/#html), you can use the \`sub\` HTML tag.
+\`\`\`html
+    H<sub>2</sub>O
+    
+\`\`\`
+Superscript[](#superscript)
+---------------------------
+
+This isn’t common, but some Markdown processors allow you to use _superscript_ to position one or more characters slightly above the normal line of type. To create a superscript, use one caret symbol (\`^\`) before and after the characters.
+\`\`\`markdown
+    X^2^
+    
+\`\`\`
+The rendered output looks like this:
+
+X^2^
+
+Alternatively, if your Markdown application supports [HTML](/basic-syntax/#html), you can use the \`sup\` HTML tag.
+\`\`\`html
+    X<sup>2</sup>
+    
+\`\`\`
+Automatic URL Linking[](#automatic-url-linking)
+-----------------------------------------------
+
+Many Markdown processors automatically turn URLs into links. That means if you type http://www.example.com, your Markdown processor will automatically turn it into a link even though you haven’t [used brackets](/basic-syntax/#links).
+\`\`\`markdown
+    http://www.example.com
+    
+\`\`\`
+The rendered output looks like this:
+
+[http://www.example.com](http://www.example.com)
+
+Disabling Automatic URL Linking[](#disabling-automatic-url-linking)
+-------------------------------------------------------------------
+
+If you don’t want a URL to be automatically linked, you can remove the link by [denoting the URL as code](/basic-syntax/#code) with backticks.
+\`\`\`markdown
+    \`http://www.example.com\`
+    
+\`\`\`
+The rendered output looks like this:
+
+\`http://www.example.com\``,
+
+            'mermaid-examples': `# 📊 Mermaid Guide 
+
+About Mermaid
+Mermaid lets you create diagrams and visualizations using text and code.
+
+Mermaid is a JavaScript based diagramming and charting tool that uses Markdown-inspired text definitions and a renderer to create and modify complex diagrams. The main purpose of Mermaid is to help documentation catch up with development.
+
+Diagramming and documentation costs precious developer time and gets outdated quickly. But not having diagrams or docs ruins productivity and hurts organizational learning. Mermaid addresses this problem by enabling users to create easily modifiable diagrams, it can also be made part of production scripts (and other pieces of code).
+
+---
+
+## How to Include Mermaid Charts
+
+### In Markdown
+
+To include Mermaid diagrams in your Markdown documents, use fenced code blocks with the \`mermaid\` language identifier:
+
+\`\`\`markdown
+\`\`\`mermaid
+graph TD
+    A[Start] --> B[Process]
+    B --> C[End]
+\`\`\`
+
+Most modern Markdown processors (GitHub, GitLab, Obsidian, VS Code extensions) support Mermaid natively and will automatically render these diagrams.
+
+### In HTML/JavaScript
+
+To use Mermaid in HTML pages, include the Mermaid library and initialize it:
+
+**Method 1: Using CDN (Simple)**
+
+\`\`\`html
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;Mermaid Example&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;My Diagram&lt;/h1&gt;
+    
+    &lt;!-- Mermaid diagram --&gt;
+    &lt;div class="mermaid"&gt;
+        graph TD
+            A[Start] --&gt; B[Process]
+            B --&gt; C[End]
+    &lt;/div&gt;
+
+    &lt;!-- Include Mermaid library --&gt;
+    &lt;script type="module"&gt;
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true });
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+\`\`\`
+
+**Method 2: Manual Rendering**
+
+\`\`\`html
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;Mermaid Example&lt;/title&gt;
+    &lt;script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;My Diagram&lt;/h1&gt;
+    
+    &lt;!-- Container for rendered diagram --&gt;
+    &lt;div id="diagram"&gt;&lt;/div&gt;
+
+    &lt;script&gt;
+        // Initialize Mermaid
+        mermaid.initialize({ 
+            startOnLoad: false,
+            theme: 'default'
+        });
+
+        // Define diagram
+        const graphDefinition = \\\`
+            graph TD
+                A[Start] --&gt; B[Process]
+                B --&gt; C[End]
+        \\\`;
+
+        // Render diagram
+        mermaid.render('myDiagram', graphDefinition).then(({svg}) =&gt; {
+            document.getElementById('diagram').innerHTML = svg;
+        });
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+\`\`\`
+
+**Method 3: Using Pre Elements**
+
+\`\`\`html
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"&gt;&lt;/script&gt;
+    &lt;script&gt;
+        mermaid.initialize({ startOnLoad: true });
+    &lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;pre class="mermaid"&gt;
+        graph TD
+            A[Start] --&gt; B[Process]
+            B --&gt; C[End]
+    &lt;/pre&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+\`\`\`
+
+**Configuration Options**
+
+\`\`\`javascript
+mermaid.initialize({
+    startOnLoad: true,
+    theme: 'default', // 'default', 'dark', 'forest', 'neutral'
+    securityLevel: 'loose',
+    logLevel: 'error',
+    flowchart: {
+        useMaxWidth: true,
+        htmlLabels: true,
+        curve: 'basis'
+    }
+});
+\`\`\`
+
+
+## Diagram Types
 
 ## Flowchart
 
 \`\`\`mermaid
+flowchart TD
+        A[Start] --> B{Is it?};
+        B -- Yes --> C[OK];
+        C --> D[Rethink];
+        D --> B;
+        B -- No --> E[End];
+\`\`\`
+
+## Graph
+
+\`\`\`mermaid
 graph TD
-        A[Christmas] -->|Get money| B(Go shopping)
-        B --> C{Let me think}
-        C -->|One| D[Laptop]
-        C -->|Two| E[iPhone]
-        C -->|Three| F[Car]
+        Start[User Login] --> Auth{Authenticated?}
+        Auth -->|Yes| Dashboard[Show Dashboard]
+        Auth -->|No| Login[Show Login Page]
+        Login --> Credentials[Enter Credentials]
+        Credentials --> Verify{Valid?}
+        Verify -->|Yes| Dashboard
+        Verify -->|No| Error[Show Error]
+        Error --> Login
+        Dashboard --> Actions[User Actions]
 \`\`\`
 
 ## Sequence Diagram
@@ -854,102 +3838,231 @@ gitGraph
         commit
 \`\`\`
 
-These are just a few examples. Mermaid supports many more diagram types!`,
+## ER Diagram
 
-            'markdown-syntax': `# Markdown Syntax Guide 📝
-
-## Headers
-
-# H1 Header
-## H2 Header
-### H3 Header
-#### H4 Header
-##### H5 Header
-###### H6 Header
-
-## Emphasis
-
-*Italic text* or _italic text_
-
-**Bold text** or __bold text__
-
-***Bold and italic*** or ___bold and italic___
-
-~~Strikethrough~~
-
-## Lists
-
-### Unordered List
-
-- Item 1
-- Item 2
-      - Nested item 2.1
-      - Nested item 2.2
-- Item 3
-
-### Ordered List
-
-1. First item
-2. Second item
-3. Third item
-       1. Nested item
-       2. Another nested item
-
-## Links
-
-[Link text](https://example.com)
-
-[Link with title](https://example.com "Link Title")
-
-## Images
-
-![Alt text](https://via.placeholder.com/150)
-
-## Blockquotes
-
-> This is a blockquote
->
-> It can span multiple lines
-
-> Nested blockquote
->> Even deeper
-
-## Code
-
-Inline \`code\` with backticks
-
-\`\`\`javascript
-// Code block
-function hello() {
-        console.log("Hello, World!");
-}
+\`\`\`mermaid
+erDiagram
+    CUSTOMER ||--o{ ORDER : places
+    ORDER ||--|{ LINE-ITEM : contains
+    CUSTOMER }|..|{ DELIVERY-ADDRESS : uses
 \`\`\`
 
-## Tables
 
-| Header 1 | Header 2 | Header 3 |
-|----------|----------|----------|
-| Cell 1   | Cell 2   | Cell 3   |
-| Cell 4   | Cell 5   | Cell 6   |
+## Architecture Diagram
 
-## Horizontal Rule
+\`\`\`mermaid
+    %%{init: {'theme':'base', 
+    'themeVariables': { 'primaryColor': '#ffcccc', 
+                        'edgeLabelBackground':'#ffffcc', 
+                        'tertiaryColor': '#ffe6e6', 
+                        'noteBkgColor': '#ffffcc', 
+                        'nodeBorder':'#333333'}}}%%
+    architecture-beta
+        group api(cloud)[API]
 
----
+        service db(database)[Database] in api
+        service disk1(disk)[Storage] in api
+        service disk2(disk)[Storage] in api
+        service server(server)[Server] in api
 
-## Task Lists
+        db:L -- R:server
+        disk1:T -- B:server
+        disk2:T -- B:db
+\`\`\`
 
-- [x] Completed task
-- [ ] Incomplete task
-- [ ] Another task
-
----
-
-**That's the basics of Markdown!** 🎉`
+These are just a few examples. Mermaid supports many more diagram types!`,
         };
 
         const fileInput = document.getElementById('fileInput');
         const urlInput = document.getElementById('urlInput');
         const output = document.getElementById('output');
+
+        // JSON syntax highlighter
+        function highlightJSON(json) {
+            try {
+                // Remove single-line comments (// ...) and multi-line comments (/* ... */)
+                const jsonWithoutComments = json
+                    .replace(/\/\/.*$/gm, '') // Remove single-line comments
+                    .replace(/\/\*[\s\S]*?\*\//g, ''); // Remove multi-line comments
+                
+                // Try to parse and pretty-print the JSON
+                const parsed = JSON.parse(jsonWithoutComments);
+                const formatted = JSON.stringify(parsed, null, 2);
+                
+                // Apply syntax highlighting
+                return formatted
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function(match) {
+                        let cls = 'json-number';
+                        if (/^"/.test(match)) {
+                            if (/:$/.test(match)) {
+                                cls = 'json-key';
+                            } else {
+                                cls = 'json-string';
+                            }
+                        } else if (/true|false/.test(match)) {
+                            cls = 'json-boolean';
+                        } else if (/null/.test(match)) {
+                            cls = 'json-null';
+                        }
+                        return `<span class="${cls}">${match}</span>`;
+                    });
+            } catch (e) {
+                // If JSON is invalid or has comments, apply highlighting directly to original content
+                return json
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/(\/\/.*$)/gm, '<span class="json-comment">$1</span>') // Single-line comments
+                    .replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="json-comment">$1</span>') // Multi-line comments
+                    .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function(match) {
+                        let cls = 'json-number';
+                        if (/^"/.test(match)) {
+                            if (/:$/.test(match)) {
+                                cls = 'json-key';
+                            } else {
+                                cls = 'json-string';
+                            }
+                        } else if (/true|false/.test(match)) {
+                            cls = 'json-boolean';
+                        } else if (/null/.test(match)) {
+                            cls = 'json-null';
+                        }
+                        return `<span class="${cls}">${match}</span>`;
+                    });
+            }
+        }
+
+        // SQL syntax highlighter
+        function highlightSQL(sql) {
+            const keywords = /\b(SELECT|FROM|WHERE|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|TABLE|INDEX|VIEW|JOIN|INNER|LEFT|RIGHT|OUTER|ON|AND|OR|NOT|NULL|IS|AS|ORDER|BY|GROUP|HAVING|LIMIT|OFFSET|UNION|ALL|DISTINCT|COUNT|SUM|AVG|MIN|MAX|CASE|WHEN|THEN|ELSE|END|IN|EXISTS|BETWEEN|LIKE|INTO|VALUES|SET)\b/gi;
+            const functions = /\b(COUNT|SUM|AVG|MIN|MAX|CAST|CONVERT|SUBSTRING|TRIM|UPPER|LOWER|COALESCE|ISNULL|GETDATE|DATEADD|DATEDIFF|LEN|REPLACE|CONCAT|ROW_NUMBER|RANK|DENSE_RANK)\b/gi;
+            const strings = /('([^'\\]|\\.)*')/g;
+            const numbers = /\b(\d+\.?\d*)\b/g;
+            const comments = /(--.*$|\/\*[\s\S]*?\*\/)/gm;
+
+            return sql
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(comments, '<span class="sql-comment">$1</span>')
+                .replace(strings, '<span class="sql-string">$1</span>')
+                .replace(functions, '<span class="sql-function">$1</span>')
+                .replace(keywords, '<span class="sql-keyword">$1</span>')
+                .replace(numbers, '<span class="sql-number">$1</span>');
+        }
+
+        // C# syntax highlighter
+        function highlightCSharp(code) {
+            const keywords = /\b(abstract|as|base|bool|break|byte|case|catch|char|checked|class|const|continue|decimal|default|delegate|do|double|else|enum|event|explicit|extern|false|finally|fixed|float|for|foreach|goto|if|implicit|in|int|interface|internal|is|lock|long|namespace|new|null|object|operator|out|override|params|private|protected|public|readonly|ref|return|sbyte|sealed|short|sizeof|stackalloc|static|string|struct|switch|this|throw|true|try|typeof|uint|ulong|unchecked|unsafe|ushort|using|virtual|void|volatile|while|async|await|var|dynamic|yield)\b/g;
+            const types = /\b(string|int|bool|double|float|decimal|char|byte|long|short|object|void|var|dynamic|List|Dictionary|IEnumerable|Task|Action|Func)\b/g;
+            const attributes = /\[([^\]]+)\]/g;
+            const strings = /("([^"\\]|\\.)*"|@"([^"]|"")*")/g;
+            const numbers = /\b(\d+\.?\d*[fFdDmM]?|\d+[lLuU]*)\b/g;
+            const comments = /(\/\/.*$|\/\*[\s\S]*?\*\/)/gm;
+
+            return code
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(comments, '<span class="cs-comment">$1</span>')
+                .replace(strings, '<span class="cs-string">$1</span>')
+                .replace(attributes, '<span class="cs-attribute">[$1]</span>')
+                .replace(types, '<span class="cs-type">$1</span>')
+                .replace(keywords, '<span class="cs-keyword">$1</span>')
+                .replace(numbers, '<span class="cs-number">$1</span>');
+        }
+
+        // HTML syntax highlighter
+        function highlightHTML(code) {
+            return code
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                // HTML comments
+                .replace(/(&lt;!--[\s\S]*?--&gt;)/g, '<span class="html-comment">$1</span>')
+                // DOCTYPE
+                .replace(/(&lt;!DOCTYPE[^&]*&gt;)/gi, '<span class="html-doctype">$1</span>')
+                // HTML entities (already escaped)
+                .replace(/(&amp;[a-zA-Z]+;|&amp;#\d+;)/g, '<span class="html-entity">$1</span>')
+                // Tags with attributes
+                .replace(/(&lt;\/?)([\w-]+)([^&]*?)(&gt;)/g, function(match, openBracket, tagName, attributes, closeBracket) {
+                    let result = openBracket + '<span class="html-tag">' + tagName + '</span>';
+                    
+                    // Highlight attributes
+                    if (attributes) {
+                        result += attributes.replace(/([\w-]+)(=)("[^"]*"|'[^']*')?/g, function(attrMatch, attrName, equals, attrValue) {
+                            let highlighted = '<span class="html-attr-name">' + attrName + '</span>';
+                            if (equals && attrValue) {
+                                highlighted += equals + '<span class="html-attr-value">' + attrValue + '</span>';
+                            }
+                            return highlighted;
+                        });
+                    }
+                    
+                    result += closeBracket;
+                    return result;
+                });
+        }
+
+        // JavaScript syntax highlighter
+        function highlightJavaScript(code) {
+            const keywords = /\b(abstract|arguments|await|boolean|break|byte|case|catch|char|class|const|continue|debugger|default|delete|do|double|else|enum|eval|export|extends|false|final|finally|float|for|function|goto|if|implements|import|in|instanceof|int|interface|let|long|native|new|null|package|private|protected|public|return|short|static|super|switch|synchronized|this|throw|throws|transient|true|try|typeof|var|void|volatile|while|with|yield|async)\b/g;
+            const functions = /\b([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?=\()/g;
+            const strings = /('([^'\\]|\\.)*'|"([^"\\]|\\.)*"|`([^`\\]|\\.)*`)/g;
+            const numbers = /\b(0x[0-9a-fA-F]+|\d+\.?\d*([eE][+-]?\d+)?)\b/g;
+            const comments = /(\/\/.*$|\/\*[\s\S]*?\*\/)/gm;
+            const booleans = /\b(true|false)\b/g;
+            const nullUndefined = /\b(null|undefined)\b/g;
+            const regex = /\/(?![*/])([^/\\\n]|\\.)+\/[gimuy]*/g;
+
+            return code
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(comments, '<span class="js-comment">$1</span>')
+                .replace(strings, '<span class="js-string">$1</span>')
+                .replace(regex, '<span class="js-regex">$&</span>')
+                .replace(keywords, '<span class="js-keyword">$1</span>')
+                .replace(booleans, '<span class="js-boolean">$1</span>')
+                .replace(nullUndefined, '<span class="js-null">$1</span>')
+                .replace(functions, '<span class="js-function">$1</span>')
+                .replace(numbers, '<span class="js-number">$1</span>');
+        }
+
+        // Apply syntax highlighting to code blocks
+        function highlightCodeBlocks() {
+            const codeBlocks = output.querySelectorAll('pre code');
+            
+            codeBlocks.forEach(block => {
+                const language = Array.from(block.classList)
+                    .find(cls => cls.startsWith('language-'))
+                    ?.replace('language-', '');
+                
+                if (language) {
+                    // Add language badge
+                    const pre = block.parentElement;
+                    pre.setAttribute('data-language', language);
+                    
+                    // Apply language-specific highlighting
+                    const code = block.textContent;
+                    
+                    if (language === 'json') {
+                        block.innerHTML = highlightJSON(code);
+                    } else if (language === 'sql') {
+                        block.innerHTML = highlightSQL(code);
+                    } else if (language === 'csharp' || language === 'cs' || language === 'c#') {
+                        block.innerHTML = highlightCSharp(code);
+                    } else if (language === 'html') {
+                        block.innerHTML = highlightHTML(code);
+                    } else if (language === 'javascript' || language === 'js') {
+                        block.innerHTML = highlightJavaScript(code);
+                    }
+                }
+            });
+        }
 
         // Render markdown content
         async function renderMarkdown(markdown) {
@@ -959,22 +4072,146 @@ function hello() {
             // Wait a bit for DOM to update
             await new Promise(resolve => setTimeout(resolve, 100));
 
+            // Apply syntax highlighting to code blocks
+            highlightCodeBlocks();
+
             // Find all mermaid elements and render them
             const mermaidElements = output.querySelectorAll('.mermaid');
 
             for (let i = 0; i < mermaidElements.length; i++) {
                 const element = mermaidElements[i];
-                const graphDefinition = element.textContent;
+                const graphDefinition = element.textContent.trim();
                 const id = `mermaid-${Date.now()}-${i}`;
 
                 try {
                     const { svg } = await mermaid.render(id, graphDefinition);
-                    element.innerHTML = svg;
+                    
+                    // Create container for side-by-side display
+                    const container = document.createElement('div');
+                    container.className = 'mermaid-container';
+                    
+                    // Create diagram section
+                    const diagramDiv = document.createElement('div');
+                    diagramDiv.className = 'mermaid-diagram';
+                    const mermaidDiv = document.createElement('div');
+                    mermaidDiv.className = 'mermaid';
+                    mermaidDiv.innerHTML = svg;
+                    mermaidDiv.setAttribute('data-processed', 'true');
+                    diagramDiv.appendChild(mermaidDiv);
+                    
+                    // Create code section
+                    const codeDiv = document.createElement('div');
+                    codeDiv.className = 'mermaid-code';
+                    const pre = document.createElement('pre');
+                    const code = document.createElement('code');
+                    code.textContent = graphDefinition;
+                    pre.appendChild(code);
+                    codeDiv.appendChild(pre);
+                    
+                    // Add both to container
+                    container.appendChild(diagramDiv);
+                    container.appendChild(codeDiv);
+                    
+                    // Replace original element with container
+                    element.parentNode.replaceChild(container, element);
+                    
+                    // Apply auto-sizing to SVG
+                    autoSizeMermaidDiagram(mermaidDiv);
                 } catch (error) {
                     console.error('Mermaid rendering error:', error);
-                    element.innerHTML = `<div class="error">Error rendering diagram: ${error.message}</div>`;
+                    // Remove the problematic mermaid div
+                    element.remove();
+                    // Show error in modal
+                    showError(`Mermaid Diagram Rendering Error (Diagram ${i + 1}):\n\n${error.message}\n\nGraph Definition:\n${graphDefinition}`);
                 }
             }
+        }
+
+        // Auto-size mermaid diagram function
+        function autoSizeMermaidDiagram(element) {
+            const svgElement = element.querySelector('svg');
+            if (!svgElement) return;
+            
+            // Ensure visibility
+            svgElement.style.opacity = '1';
+            svgElement.style.visibility = 'visible';
+            
+            // Get original dimensions
+            const originalWidth = svgElement.getAttribute('width');
+            const originalHeight = svgElement.getAttribute('height');
+            let viewBox = svgElement.getAttribute('viewBox');
+            
+            // If no viewBox but has width/height, create one
+            if (!viewBox && originalWidth && originalHeight) {
+                const w = parseFloat(originalWidth);
+                const h = parseFloat(originalHeight);
+                svgElement.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            }
+            
+            // Remove fixed dimensions to enable responsive sizing
+            svgElement.removeAttribute('width');
+            svgElement.removeAttribute('height');
+            
+            // Set responsive styles
+            svgElement.style.maxWidth = '100%';
+            svgElement.style.height = 'auto';
+            svgElement.style.display = 'block';
+            svgElement.style.margin = '0 auto';
+            
+            // Fix all child elements visibility
+            const allElements = svgElement.querySelectorAll('*');
+            allElements.forEach(el => {
+                el.style.opacity = '1';
+                el.style.visibility = 'visible';
+            });
+            
+            // Fix text elements font size
+            const textElements = svgElement.querySelectorAll('text');
+            textElements.forEach(text => {
+                const currentSize = parseFloat(window.getComputedStyle(text).fontSize);
+                if (currentSize && currentSize > 20) {
+                    text.style.fontSize = '14px';
+                }
+            });
+            
+            // Add resize observer to maintain aspect ratio
+            if ('ResizeObserver' in window) {
+                const resizeObserver = new ResizeObserver(entries => {
+                    for (let entry of entries) {
+                        const svg = entry.target;
+                        const viewBox = svg.getAttribute('viewBox');
+                        if (viewBox) {
+                            const [, , width, height] = viewBox.split(' ').map(parseFloat);
+                            const aspectRatio = width / height;
+                            const containerWidth = entry.contentRect.width;
+                            svg.style.width = `${Math.min(containerWidth, width)}px`;
+                            svg.style.height = 'auto';
+                        }
+                    }
+                });
+                resizeObserver.observe(svgElement);
+            }
+        }
+
+        // Handle window resize for all mermaid diagrams
+        window.addEventListener('resize', debounce(() => {
+            const mermaidElements = document.querySelectorAll('.mermaid[data-processed="true"]');
+            mermaidElements.forEach(element => {
+                autoSizeMermaidDiagram(element);
+            });
+        }, 250));
+
+        // Debounce helper function
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
         }
 
         // Load predefined content
@@ -1006,13 +4243,8 @@ function hello() {
                 const markdown = await response.text();
                 renderMarkdown(markdown);
             } catch (error) {
-                output.innerHTML = `
-                    <div class="error">
-                        <h3>❌ Error loading URL</h3>
-                        <p>${error.message}</p>
-                        <p>Make sure the URL is correct and publicly accessible.</p>
-                    </div>
-                `;
+                output.innerHTML = '<div class="empty-state"><h3>Failed to load URL</h3><p>See error details in the popup</p></div>';
+                showError(`Error Loading URL:\n\n${error.message}\n\nURL: ${url}\n\nPlease make sure the URL is correct and publicly accessible.`);
             }
         }
 
@@ -1030,12 +4262,8 @@ function hello() {
             };
 
             reader.onerror = function () {
-                output.innerHTML = `
-                    <div class="error">
-                        <h3>❌ Error reading file</h3>
-                        <p>Please try again with a valid markdown file</p>
-                    </div>
-                `;
+                output.innerHTML = '<div class="empty-state"><h3>Failed to read file</h3><p>See error details in the popup</p></div>';
+                showError(`Error Reading File:\n\nFailed to read the selected file.\n\nPlease try again with a valid markdown file.`);
             };
 
             reader.readAsText(file);
@@ -1092,10 +4320,21 @@ function hello() {
         // Load welcome document by default
         window.addEventListener('load', function () {
             document.querySelector('[data-id="welcome"]').click();
+            
+            // Setup error modal click-outside handler after DOM is loaded
+            const errorModal = document.getElementById('errorModal');
+            if (errorModal) {
+                errorModal.addEventListener('click', function (e) {
+                    if (e.target === this) {
+                        closeErrorModal();
+                    }
+                });
+            }
         });
 
         // Modal functions
         function openMarkdownModal() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             document.getElementById('markdownModal').classList.add('open');
             document.getElementById('markdownInput').focus();
         }
@@ -1130,6 +4369,35 @@ function hello() {
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
                 closeMarkdownModal();
+                closeErrorModal();
+            }
+        });
+
+        // Error modal functions
+        function showError(message) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            const errorMessageEl = document.getElementById('errorMessage');
+            const errorModalEl = document.getElementById('errorModal');
+            if (errorMessageEl && errorModalEl) {
+                errorMessageEl.textContent = message;
+                errorModalEl.classList.add('open');
+            } else {
+                console.error('Error modal elements not found');
+                alert('Error: ' + message);
+            }
+        }
+
+        function closeErrorModal() {
+            const errorModalEl = document.getElementById('errorModal');
+            if (errorModalEl) {
+                errorModalEl.classList.remove('open');
+            }
+        }
+
+        // Close error modal when clicking outside
+        document.getElementById('errorModal')?.addEventListener('click', function (e) {
+            if (e.target === this) {
+                closeErrorModal();
             }
         });
     </script>
